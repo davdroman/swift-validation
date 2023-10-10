@@ -5,22 +5,19 @@ import XCTest
 final class ValidationTests: XCTestCase {
 	func testPropertyWrapper() {
 		struct InputState {
-			@Validation<String, String> var name: String?
-
-			init(initialName: String?) {
-				self._name = .init(wrappedValue: initialName) { name in
-					switch name {
-					case nil: "Name cannot be nil"
-					case let name?:
-						if name.isBlank { "Name cannot be blank" }
-						if name.count < 2 { "Name cannot be shorter than 2 characters" }
-						if name.rangeOfCharacter(from: .symbols) != nil { "Name cannot contain special characters or symbols" }
-					}
+			@Validation(rules: { name in
+				switch name {
+				case nil: "Name cannot be nil"
+				case let name?:
+					if name.isBlank { "Name cannot be blank" }
+					if name.count < 2 { "Name cannot be shorter than 2 characters" }
+					if name.rangeOfCharacter(from: .symbols) != nil { "Name cannot contain special characters or symbols" }
 				}
-			}
+			})
+			var name: String? = nil
 		}
 
-		var sut = InputState(initialName: nil)
+		var sut = InputState(name: nil)
 		XCTAssertNil(sut.name)
 		XCTAssertEqual(sut.$name.errors, NonEmptyArray("Name cannot be nil"))
 
@@ -50,11 +47,5 @@ final class ValidationTests: XCTestCase {
 		XCTAssertEqual(sut.$name.errors, NonEmptyArray(
 			"Name cannot contain special characters or symbols"
 		))
-	}
-}
-
-extension String {
-	var isBlank: Bool {
-		self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 	}
 }

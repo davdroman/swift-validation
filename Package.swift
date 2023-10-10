@@ -21,13 +21,14 @@ let package = Package(
 				.product(name: "Validated", package: "swift-validated"),
 			]
 		),
+		.testTarget(name: "ValidationTests", dependencies: [
+			"Validation",
+		]),
+
 		.target(
 			name: "ValidationTCA",
 			dependencies: [.product(name: "ComposableArchitecture", package: "swift-composable-architecture")]
 		),
-		.testTarget(name: "ValidationTests", dependencies: [
-			"Validation",
-		]),
 	]
 )
 

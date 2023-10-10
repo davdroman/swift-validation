@@ -68,11 +68,5 @@ struct VanillaValidationView: View {
 		.padding()
 	}
 }
-
-extension String {
-	var isBlank: Bool {
-		self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-	}
-}
 #endif
 #endif

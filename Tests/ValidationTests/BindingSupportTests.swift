@@ -1,11 +1,11 @@
 #if canImport(SwiftUI)
-import Validation
 import SwiftUI
+@testable import Validation
 import XCTest
 
 final class ValidationExtraTests: XCTestCase {
 	func testBinding() {
-		var validation = Validation<String, String> { input in
+		var validation = Validation { (input: String?) in
 			switch input {
 			case nil: "Cannot be nil"
 			case let input?:
