@@ -25,6 +25,10 @@ public struct Validation<Value, Error> {
 		)
 	}
 
+	public init(projectedValue: Self) {
+		self = projectedValue
+	}
+
 	public var projectedValue: Self {
 		self
 	}
