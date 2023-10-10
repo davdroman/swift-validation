@@ -1,22 +1,22 @@
+import Builders
 @testable import Validation
 import XCTest
 
-// MARK: - ValidationTests
 final class ValidationTests: XCTestCase {
 	func testPropertyWrapper() {
 		struct InputState {
 			@Validation<String, String> var name: String?
 
 			init(initialName: String?) {
-				self._name = .init(
-					wrappedValue: initialName,
-					onNil: "Name cannot be nil",
-					rules: [
-						.if(\.isBlank, error: "Name cannot be blank"),
-						.unless({ $0.count >= 2 }, error: "Name cannot be shorter than 2 characters"),
-						.if({ $0.rangeOfCharacter(from: .symbols) != nil }, error: "Name cannot contain special characters or symbols"),
-					]
-				)
+				self._name = .init(wrappedValue: initialName) { name in
+					switch name {
+					case nil: "Name cannot be nil"
+					case let name?:
+						if name.isBlank { "Name cannot be blank" }
+						if name.count < 2 { "Name cannot be shorter than 2 characters" }
+						if name.rangeOfCharacter(from: .symbols) != nil { "Name cannot contain special characters or symbols" }
+					}
+				}
 			}
 		}
 

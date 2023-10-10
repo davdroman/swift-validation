@@ -1,32 +1,26 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-// Binding Extras
-
-fileprivate func ?? <T>(lhs: Binding<T?>, rhs: T) -> Binding<T> {
-	.init(
-		get: { lhs.wrappedValue ?? rhs },
-		set: { lhs.wrappedValue = $0 }
-	)
-}
-
 // MARK: Vanilla SwiftUI Validation
 
 extension Binding {
-	@_disfavoredOverload
-	public static func validation<Value, Error>(
-		_ validation: Binding<Validation<Value, Error>>
-	) -> Binding<Value?> {
-		.init(
-			get: { validation.wrappedValue.rawValue },
+	public init<Error>(
+		validating validation: Binding<Validation<Value, Error>>,
+		default: Value
+	) {
+		self.init(
+			get: { validation.wrappedValue.rawValue ?? `default` },
 			set: { validation.wrappedValue.wrappedValue = $0 }
 		)
 	}
 
-	public static func validation<S: StringProtocol, Error>(
-		_ validation: Binding<Validation<S, Error>>
-	) -> Binding<S> {
-		.validation(validation) ?? ""
+	public init<Wrapped, Error>(
+		validating validation: Binding<Validation<Wrapped, Error>>
+	) where Value == Wrapped? {
+		self.init(
+			get: { validation.wrappedValue.rawValue },
+			set: { validation.wrappedValue.wrappedValue = $0 }
+		)
 	}
 }
 
@@ -47,20 +41,21 @@ struct VanillaValidationPreview: PreviewProvider {
 
 struct VanillaValidationView: View {
 	@State
-	@Validation<String, String>(
-		onNil: "Cannot be nil",
-		rules: [
-			.if(\.isEmpty, error: "Cannot be empty"),
-			.if(\.isBlank, error: "Cannot be blank"),
-		]
-	)
+	@Validation(rules: { input in
+		switch input {
+		case nil: "Cannot be nil"
+		case let input?:
+			if input.isEmpty { "Cannot be empty" }
+			if input.isBlank { "Cannot be blank" }
+		}
+	})
 	var name: String? = nil
 
 	var body: some View {
 		VStack(alignment: .leading) {
 			TextField(
 				"Name",
-				text: .validation($name)
+				text: Binding(validating: $name, default: "")
 			)
 			.textFieldStyle(.roundedBorder)
 

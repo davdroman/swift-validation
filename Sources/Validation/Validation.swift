@@ -1,24 +1,18 @@
+import Builders
 @_exported import Validated
 
-// MARK: - Validation
 @propertyWrapper
 @dynamicMemberLookup
 public struct Validation<Value, Error> {
 	@_spi(Validation) public var rawValue: Value?
-	private let onNil: @Sendable () -> Error?
-	private let rules: [ValidationRule<Value, Error>]
-	private let exceptions: [@Sendable (Value) -> Bool]
+	private let rules: @Sendable (Value?) -> [Error]
 
 	public init(
-		wrappedValue rawValue: Value?,
-		onNil: @autoclosure @escaping @Sendable () -> Error?,
-		rules: [ValidationRule<Value, Error>],
-		exceptions: [@Sendable (Value) -> Bool] = []
+		wrappedValue rawValue: Value? = nil,
+		@ArrayBuilder<Error> rules: @escaping @Sendable (Value?) -> [Error]
 	) {
 		self.rawValue = rawValue
-		self.onNil = onNil
 		self.rules = rules
-		self.exceptions = exceptions
 	}
 
 	public var projectedValue: Self {
@@ -26,20 +20,12 @@ public struct Validation<Value, Error> {
 	}
 
 	public var validated: Validated<Value, Error>? {
-		guard let rawValue else {
-			if let error = onNil() {
-				return .invalid(NonEmptyArray(error))
-			} else {
-				return nil
-			}
-		}
-		if exceptions.contains(where: { $0(rawValue) }) {
-			return .valid(rawValue)
-		}
-		if let errors = NonEmpty(rawValue: rules.compactMap { $0.validate(rawValue) }) {
+		if let errors = NonEmpty(rawValue: rules(rawValue)) {
 			return .invalid(errors)
+		} else if let value = rawValue {
+			return .valid(value)
 		} else {
-			return .valid(rawValue)
+			return nil
 		}
 	}
 
@@ -57,53 +43,16 @@ public struct Validation<Value, Error> {
 	}
 }
 
-// MARK: Sendable
 extension Validation: Sendable where Value: Sendable, Error: Sendable {}
 
-// MARK: Equatable
 extension Validation: Equatable where Value: Equatable {
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		lhs.rawValue == rhs.rawValue
 	}
 }
 
-// MARK: Hashable
 extension Validation: Hashable where Value: Hashable {
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(rawValue)
 	}
 }
-
-// MARK: - ValidationRule
-public struct ValidationRule<Value, Error> {
-	let validate: @Sendable (Value) -> Error?
-
-	public static func `if`(
-		_ condition: @escaping @Sendable (Value) -> Bool,
-		error: @autoclosure @escaping @Sendable () -> Error
-	) -> Self {
-		ValidationRule {
-			if condition($0) {
-				return error()
-			} else {
-				return nil
-			}
-		}
-	}
-
-	public static func unless(
-		_ condition: @escaping @Sendable (Value) -> Bool,
-		error: @autoclosure @escaping @Sendable () -> Error
-	) -> Self {
-		ValidationRule {
-			if !condition($0) {
-				return error()
-			} else {
-				return nil
-			}
-		}
-	}
-}
-
-// MARK: Sendable
-extension ValidationRule: Sendable where Value: Sendable, Error: Sendable {}

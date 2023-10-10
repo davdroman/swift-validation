@@ -5,19 +5,21 @@ import XCTest
 
 final class ValidationExtraTests: XCTestCase {
 	func testBinding() {
-		var validation = Validation<String, String>(
-			wrappedValue: nil,
-			onNil: "Cannot be nil",
-			rules: [
-				.if(\.isEmpty, error: "Cannot be empty"),
-				.if(\.isBlank, error: "Cannot be blank"),
-			]
-		)
-		let sut = Binding<String>.validation(
-			Binding(
+		var validation = Validation<String, String> { input in
+			switch input {
+			case nil: "Cannot be nil"
+			case let input?:
+				if input.isEmpty { "Cannot be empty" }
+				if input.isBlank { "Cannot be blank" }
+			}
+		}
+
+		let sut = Binding(
+			validating: Binding(
 				get: { validation },
 				set: { validation = $0 }
-			)
+			),
+			default: ""
 		)
 		XCTAssertEqual(sut.wrappedValue, "")
 		XCTAssertEqual(validation.errors, NonEmptyArray("Cannot be nil"))
