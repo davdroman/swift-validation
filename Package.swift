@@ -26,7 +26,7 @@ let package = Package(
 		]),
 
 		.target(
-			name: "ValidationTCA",
+			name: "ComposableValidation",
 			dependencies: [.product(name: "ComposableArchitecture", package: "swift-composable-architecture")]
 		),
 	]
