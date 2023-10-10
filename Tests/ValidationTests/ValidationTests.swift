@@ -1,12 +1,60 @@
-import XCTest
 @testable import Validation
+import XCTest
 
+// MARK: - ValidationTests
 final class ValidationTests: XCTestCase {
-    func testExample() throws {
-        // XCTest Documentation
-        // https://developer.apple.com/documentation/xctest
+	func testPropertyWrapper() {
+		struct InputState {
+			@Validation<String, String> var name: String?
 
-        // Defining Test Cases and Test Methods
-        // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
-    }
+			init(initialName: String?) {
+				self._name = .init(
+					wrappedValue: initialName,
+					onNil: "Name cannot be nil",
+					rules: [
+						.if(\.isBlank, error: "Name cannot be blank"),
+						.unless({ $0.count >= 2 }, error: "Name cannot be shorter than 2 characters"),
+						.if({ $0.rangeOfCharacter(from: .symbols) != nil }, error: "Name cannot contain special characters or symbols"),
+					]
+				)
+			}
+		}
+
+		var sut = InputState(initialName: nil)
+		XCTAssertNil(sut.name)
+		XCTAssertEqual(sut.$name.errors, NonEmptyArray("Name cannot be nil"))
+
+		sut.name = ""
+		XCTAssertNil(sut.name)
+		XCTAssertEqual(sut.$name.errors, NonEmptyArray(
+			"Name cannot be blank",
+			"Name cannot be shorter than 2 characters"
+		))
+
+		sut.name = "D"
+		XCTAssertNil(sut.name)
+		XCTAssertEqual(sut.$name.errors, NonEmptyArray(
+			"Name cannot be shorter than 2 characters"
+		))
+
+		sut.name = "Da"
+		XCTAssertEqual(sut.name, "Da")
+		XCTAssertNil(sut.$name.errors)
+
+		sut.name = "David"
+		XCTAssertEqual(sut.name, "David")
+		XCTAssertNil(sut.$name.errors)
+
+		sut.name = "David$"
+		XCTAssertNil(sut.name)
+		XCTAssertEqual(sut.$name.errors, NonEmptyArray(
+			"Name cannot contain special characters or symbols"
+		))
+	}
+}
+
+extension String {
+	var isBlank: Bool {
+		self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+	}
 }
