@@ -23,7 +23,11 @@ let package = Package(
 		),
 		.testTarget(name: "ValidationTests", dependencies: [
 			"Validation",
-			.product(name: "ViewInspector", package: "ViewInspector"),
+			.product(
+				name: "ViewInspector",
+				package: "ViewInspector",
+				condition: .when(platforms: [.iOS, .macOS, .tvOS, .watchOS])
+			),
 		]),
 
 		.target(
