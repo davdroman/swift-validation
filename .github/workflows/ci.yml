@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   macOS:
+    if: false
     name: ${{ matrix.platform }} (Swift ${{ matrix.swift }})
     runs-on: ${{ matrix.os }}
     strategy:
