@@ -1,10 +1,11 @@
 import Builders
+import Combine
 @_exported import Validated
 
 @propertyWrapper
 @dynamicMemberLookup
-public struct Validation<Value, Error> {
-	@_spi(Validation) public var rawValue: Value?
+public final class Validation<Value, Error>: ObservableObject {
+	@_spi(package) @Published public var rawValue: Value?
 	private let validate: ValidationRules<Value, Error>
 
 	public init(
@@ -15,7 +16,7 @@ public struct Validation<Value, Error> {
 		self.validate = handler
 	}
 
-	public init(
+	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) {
@@ -25,12 +26,13 @@ public struct Validation<Value, Error> {
 		)
 	}
 
-	public init(projectedValue: Self) {
-		self = projectedValue
+	public var projectedValue: Validation<Value, Error> {
+		self
 	}
 
-	public var projectedValue: Self {
-		self
+	internal var readOnlyProjectedValue: Validation<Value, Error> {
+		get { self }
+		set { fatalError() }
 	}
 
 	public var validated: Validated<Value, Error>? {
@@ -57,16 +59,16 @@ public struct Validation<Value, Error> {
 	}
 }
 
-extension Validation: Sendable where Value: Sendable, Error: Sendable {}
+//extension Validation: Sendable where Value: Sendable, Error: Sendable {}
 
-extension Validation: Equatable where Value: Equatable {
-	public static func == (lhs: Self, rhs: Self) -> Bool {
-		lhs.rawValue == rhs.rawValue
-	}
-}
+//extension Validation: Equatable where Value: Equatable {
+//	public static func == (lhs: Self, rhs: Self) -> Bool {
+//		lhs.rawValue == rhs.rawValue
+//	}
+//}
 
-extension Validation: Hashable where Value: Hashable {
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(rawValue)
-	}
-}
+//extension Validation: Hashable where Value: Hashable {
+//	public func hash(into hasher: inout Hasher) {
+//		hasher.combine(rawValue)
+//	}
+//}

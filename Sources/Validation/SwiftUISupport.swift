@@ -3,11 +3,11 @@ import SwiftUI
 
 extension Binding {
 	public init<Error>(
-		validating validation: Binding<Validation<Value, Error>>,
+		validating validation: ObservedObject<Validation<Value, Error>>.Wrapper,
 		default: Value
 	) {
 		self.init(
-			get: { validation.wrappedValue.rawValue ?? `default` },
+			get: { validation.rawValue.wrappedValue ?? `default` },
 			set: { validation.wrappedValue.wrappedValue = $0 }
 		)
 	}
@@ -32,13 +32,14 @@ extension Binding {
 
 #if DEBUG
 // TODO: use #BetterPreview macro
+@available(iOS 14.0, *)
 struct ValidationPreview: PreviewProvider {
 	static var previews: some View {
 		ValidationView()
 	}
 
 	struct ValidationView: View {
-		@State
+		@StateObject
 		@Validation({ input in
 			switch input {
 			case nil: "Cannot be nil"
@@ -57,7 +58,7 @@ struct ValidationPreview: PreviewProvider {
 				)
 				.textFieldStyle(.roundedBorder)
 
-				if let error = $name.errors?.first {
+				if let error = $name.readOnlyProjectedValue.errors?.first {
 					Text(error)
 						.foregroundColor(.red)
 						.font(.footnote)

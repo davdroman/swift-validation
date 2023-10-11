@@ -17,7 +17,7 @@ final class ValidationTests: XCTestCase {
 			var name: String? = nil
 		}
 
-		var sut = InputState(name: nil)
+		let sut = InputState(name: nil)
 		XCTAssertNil(sut.name)
 		XCTAssertEqual(sut.$name.errors, NonEmptyArray("Name cannot be nil"))
 
