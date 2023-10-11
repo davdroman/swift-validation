@@ -29,13 +29,17 @@ let package = Package(
 				condition: .when(platforms: [.iOS, .macOS, .tvOS, .watchOS])
 			),
 		]),
-
-		.target(
-			name: "ComposableValidation",
-			dependencies: [.product(name: "ComposableArchitecture", package: "swift-composable-architecture")]
-		),
 	]
 )
+
+#if !os(Linux)
+package.targets.append(contentsOf: [
+	.target(
+		name: "ComposableValidation",
+		dependencies: [.product(name: "ComposableArchitecture", package: "swift-composable-architecture")]
+	),
+])
+#endif
 
 package.dependencies += [
 	.package(url: "https://github.com/davdroman/swift-builders", from: "0.1.0"),
