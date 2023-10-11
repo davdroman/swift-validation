@@ -1,28 +1,41 @@
 import Builders
-import Combine
+#if canImport(Observation)
+import Observation
+#endif
 @_exported import Validated
+
+public enum ValidationState<Value, Error> {
+	case validating
+	case invalid
+	case valid
+}
 
 @propertyWrapper
 @dynamicMemberLookup
-public final class Validation<Value, Error>: ObservableObject {
-	@_spi(package) @Published public var rawValue: Value?
-	private let validate: ValidationRules<Value, Error>
+#if canImport(Observation)
+@Observable
+#endif
+@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
+public final class Validation<Value, Error> {
+	private(set) public var rawValue: Value?
+//	public var state: Value?
+	private let rule: ValidationRule<Value, Error>
 
 	public init(
 		wrappedValue rawValue: Value? = nil,
-		rules handler: ValidationRules<Value, Error>
+		rule: ValidationRule<Value, Error>
 	) {
 		self.rawValue = rawValue
-		self.validate = handler
+		self.rule = rule
 	}
 
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRuleHandler<Value, Error>
 	) {
 		self.init(
 			wrappedValue: rawValue,
-			rules: .init(handler: handler)
+			rule: .init(handler: handler)
 		)
 	}
 
@@ -30,13 +43,13 @@ public final class Validation<Value, Error>: ObservableObject {
 		self
 	}
 
-	internal var readOnlyProjectedValue: Validation<Value, Error> {
-		get { self }
-		set { fatalError() }
-	}
+//	internal var readOnlyProjectedValue: Validation<Value, Error> {
+//		get { self }
+//		set { fatalError() }
+//	}
 
 	public var validated: Validated<Value, Error>? {
-		if let errors = NonEmpty(rawValue: validate(rawValue)) {
+		if let errors = NonEmpty(rawValue: rule.validate(rawValue)) {
 			return .invalid(errors)
 		} else if let value = rawValue {
 			return .valid(value)

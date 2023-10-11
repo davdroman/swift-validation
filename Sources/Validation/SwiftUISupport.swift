@@ -1,13 +1,14 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
 extension Binding {
 	public init<Error>(
-		validating validation: ObservedObject<Validation<Value, Error>>.Wrapper,
+		validating validation: Binding<Validation<Value, Error>>,
 		default: Value
 	) {
 		self.init(
-			get: { validation.rawValue.wrappedValue ?? `default` },
+			get: { validation.wrappedValue.rawValue ?? `default` },
 			set: { validation.wrappedValue.wrappedValue = $0 }
 		)
 	}
@@ -22,6 +23,7 @@ extension Binding {
 	}
 }
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
 extension Binding {
 	public subscript<V, Error, T>(
 		dynamicMember keyPath: KeyPath<Validated<V, Error>, T?>
@@ -32,14 +34,14 @@ extension Binding {
 
 #if DEBUG
 // TODO: use #BetterPreview macro
-@available(iOS 14.0, *)
+@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
 struct ValidationPreview: PreviewProvider {
 	static var previews: some View {
 		ValidationView()
 	}
 
 	struct ValidationView: View {
-		@StateObject
+		@State
 		@Validation({ input in
 			switch input {
 			case nil: "Cannot be nil"
@@ -58,7 +60,7 @@ struct ValidationPreview: PreviewProvider {
 				)
 				.textFieldStyle(.roundedBorder)
 
-				if let error = $name.readOnlyProjectedValue.errors?.first {
+				if let error = $name.errors?.first {
 					Text(error)
 						.foregroundColor(.red)
 						.font(.footnote)

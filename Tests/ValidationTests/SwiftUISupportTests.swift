@@ -6,8 +6,12 @@ import XCTest
 
 final class SwiftUISupportTests: XCTestCase {
 	func testViewBinding() throws {
+		guard #available(iOS 17, macOS 14, tvOS 17, watchOS 9, *) else {
+			throw XCTSkip()
+		}
+
 		struct SUT: View {
-			@ObservedObject
+			@State
 			@Validation({ input in
 				switch input {
 				case nil: "Cannot be nil"
@@ -28,7 +32,7 @@ final class SwiftUISupportTests: XCTestCase {
 					)
 					.textFieldStyle(.roundedBorder)
 
-					if let error = $name.readOnlyProjectedValue.errors?.first {
+					if let error = $name.errors?.first {
 						Text(error)
 							.foregroundColor(.red)
 							.font(.footnote)
@@ -46,29 +50,33 @@ final class SwiftUISupportTests: XCTestCase {
 		var sut = SUT()
 		let exp = sut.on(\.didAppear) { sut in
 			XCTAssertNoThrow(try sut.find(text: "Cannot be nil"))
-			XCTAssertEqual(try sut.actualView().$name.readOnlyProjectedValue.errors?.rawValue, ["Cannot be nil"])
+			XCTAssertEqual(try sut.actualView().$name.errors?.rawValue, ["Cannot be nil"])
 
 			try sut.find(ViewType.TextField.self).setInput("")
 
 			XCTAssertNoThrow(try sut.find(text: "Cannot be empty"))
-			XCTAssertEqual(try sut.actualView().$name.readOnlyProjectedValue.errors?.rawValue, ["Cannot be empty", "Cannot be blank"])
+			XCTAssertEqual(try sut.actualView().$name.errors?.rawValue, ["Cannot be empty", "Cannot be blank"])
 
 			try sut.find(ViewType.TextField.self).setInput(" ")
 
 			XCTAssertNoThrow(try sut.find(text: "Cannot be blank"))
-			XCTAssertEqual(try sut.actualView().$name.readOnlyProjectedValue.errors?.rawValue, ["Cannot be blank"])
+			XCTAssertEqual(try sut.actualView().$name.errors?.rawValue, ["Cannot be blank"])
 
 			try sut.find(ViewType.TextField.self).setInput(" D")
 
 			XCTAssertNoThrow(try sut.find(text: "All good!"))
-			XCTAssertEqual(try sut.actualView().$name.readOnlyProjectedValue.errors, nil)
+			XCTAssertEqual(try sut.actualView().$name.errors, nil)
 		}
 		ViewHosting.host(view: sut)
 		wait(for: [exp])
 	}
 
-	func testIsolatedBinding() {
-		let validation = Validation { (input: String?) in
+	func testIsolatedBinding() throws {
+		guard #available(iOS 17, macOS 14, tvOS 17, watchOS 9, *) else {
+			throw XCTSkip()
+		}
+
+		@State var validation = Validation { (input: String?) in
 			switch input {
 			case nil: "Cannot be nil"
 			case let input?:
@@ -78,7 +86,7 @@ final class SwiftUISupportTests: XCTestCase {
 		}
 
 		let sut = Binding(
-			validating: ObservedObject(wrappedValue: validation).projectedValue,
+			validating: $validation,
 			default: ""
 		)
 		XCTAssertEqual(sut.wrappedValue, "")
