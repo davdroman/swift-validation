@@ -39,3 +39,13 @@ package.dependencies += [
 	.package(url: "https://github.com/nalexn/ViewInspector", from: "0.1.0"),
 	.package(url: "https://github.com/pointfreeco/swift-validated", from: "0.1.0"),
 ]
+
+//for target in package.targets where target.type != .system {
+//	target.swiftSettings = target.swiftSettings ?? []
+//	target.swiftSettings?.append(
+//		.unsafeFlags([
+//			"-Xfrontend", "-warn-concurrency",
+//			"-Xfrontend", "-enable-actor-data-race-checks",
+//		])
+//	)
+//}
