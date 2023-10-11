@@ -23,6 +23,7 @@ let package = Package(
 		),
 		.testTarget(name: "ValidationTests", dependencies: [
 			"Validation",
+			.product(name: "ViewInspector", package: "ViewInspector"),
 		]),
 
 		.target(
@@ -34,6 +35,7 @@ let package = Package(
 
 package.dependencies += [
 	.package(url: "https://github.com/davdroman/swift-builders", from: "0.1.0"),
-	.package(url: "https://github.com/pointfreeco/swift-validated", from: "0.1.0"),
 	.package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
+	.package(url: "https://github.com/nalexn/ViewInspector", from: "0.1.0"),
+	.package(url: "https://github.com/pointfreeco/swift-validated", from: "0.1.0"),
 ]
