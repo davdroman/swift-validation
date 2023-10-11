@@ -1,8 +1,6 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: Vanilla SwiftUI Validation
-
 extension Binding {
 	public init<Error>(
 		validating validation: Binding<Validation<Value, Error>>,
@@ -33,39 +31,40 @@ extension Binding {
 }
 
 #if DEBUG
-struct VanillaValidationPreview: PreviewProvider {
+// TODO: use #BetterPreview macro
+struct ValidationPreview: PreviewProvider {
 	static var previews: some View {
-		VanillaValidationView()
+		ValidationView()
 	}
-}
 
-struct VanillaValidationView: View {
-	@State
-	@Validation(rules: { input in
-		switch input {
-		case nil: "Cannot be nil"
-		case let input?:
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		}
-	})
-	var name: String? = nil
-
-	var body: some View {
-		VStack(alignment: .leading) {
-			TextField(
-				"Name",
-				text: Binding(validating: $name, default: "")
-			)
-			.textFieldStyle(.roundedBorder)
-
-			if let error = $name.errors?.first {
-				Text(error)
-					.foregroundColor(.red)
-					.font(.footnote)
+	struct ValidationView: View {
+		@State
+		@Validation(rules: { input in
+			switch input {
+			case nil: "Cannot be nil"
+			case let input?:
+				if input.isEmpty { "Cannot be empty" }
+				if input.isBlank { "Cannot be blank" }
 			}
+		})
+		var name: String? = nil
+
+		var body: some View {
+			VStack(alignment: .leading) {
+				TextField(
+					"Name",
+					text: Binding(validating: $name, default: "")
+				)
+				.textFieldStyle(.roundedBorder)
+
+				if let error = $name.errors?.first {
+					Text(error)
+						.foregroundColor(.red)
+						.font(.footnote)
+				}
+			}
+			.padding()
 		}
-		.padding()
 	}
 }
 #endif
