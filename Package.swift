@@ -36,7 +36,10 @@ let package = Package(
 package.targets.append(contentsOf: [
 	.target(
 		name: "ComposableValidation",
-		dependencies: [.product(name: "ComposableArchitecture", package: "swift-composable-architecture")]
+		dependencies: [
+			.product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+//			"ValidationCore",
+		]
 	),
 ])
 #endif
