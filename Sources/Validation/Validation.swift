@@ -17,7 +17,7 @@ public struct Validation<Value, Error> {
 
 	public init(
 		wrappedValue rawValue: Value? = nil,
-		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandler<Value, Error>
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) {
 		self.init(
 			wrappedValue: rawValue,

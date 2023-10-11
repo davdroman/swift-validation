@@ -39,7 +39,7 @@ struct ValidationPreview: PreviewProvider {
 
 	struct ValidationView: View {
 		@State
-		@Validation(rules: { input in
+		@Validation({ input in
 			switch input {
 			case nil: "Cannot be nil"
 			case let input?:

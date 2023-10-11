@@ -5,7 +5,7 @@ import XCTest
 final class ValidationTests: XCTestCase {
 	func testPropertyWrapper() {
 		struct InputState {
-			@Validation(rules: { name in
+			@Validation({ name in
 				switch name {
 				case nil: "Name cannot be nil"
 				case let name?:
