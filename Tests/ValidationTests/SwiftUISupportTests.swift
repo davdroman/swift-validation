@@ -76,7 +76,7 @@ final class SwiftUISupportTests: XCTestCase {
 			throw XCTSkip()
 		}
 
-		@State var validation = Validation { (input: String?) in
+		@Binding var validation = Validation { (input: String?) in
 			switch input {
 			case nil: "Cannot be nil"
 			case let input?:
