@@ -8,62 +8,59 @@ final class ValidationTests: XCTestCase {
 			throw XCTSkip()
 		}
 
-		struct InputState {
-			@Validation({ name in
-				switch name {
-				case nil: "Name cannot be nil"
-				case let name?:
-					if name.isBlank { "Name cannot be blank" }
-					if name.count < 2 { "Name cannot be shorter than 2 characters" }
-					if name.rangeOfCharacter(from: .symbols) != nil { "Name cannot contain special characters or symbols" }
-				}
-			})
-			var name: String? = nil
+		@Validation({ name in
+			switch name {
+			case nil: "Input cannot be nil"
+			case let name?:
+				if name.isBlank { "Input cannot be blank" }
+				if name.count < 2 { "Input cannot be shorter than 2 characters" }
+				if name.rangeOfCharacter(from: .symbols) != nil { "Input cannot contain special characters or symbols" }
+			}
+		})
+		var sut: String? = nil
 
-//			@Validation(mode: .live(delay: .seconds(0.25)) | .late, { ... ❌ - too ambiguous ("live" being vernacular in TCA, "late" is too much of an obscure UX term)
-//			@Validation(mode: .asYouType(delay: .seconds(0.25)) | .onSubmit, { ... ❌ - should be agnostic (e.g. sliders)
-//			@Validation(mode: .automatic(delay: .seconds(0.25)) | .manual, { ... ✅ best one so far
+//		@Validation(mode: .live(delay: .seconds(0.25)) | .late, { ... ❌ - too ambiguous ("live" being vernacular in TCA, "late" is too much of an obscure UX term)
+//		@Validation(mode: .asYouType(delay: .seconds(0.25)) | .onSubmit, { ... ❌ - should be agnostic (e.g. sliders)
+//		@Validation(mode: .automatic(delay: .seconds(0.25)) | .manual, { ... ✅ best one so far
+//
+//		@Validation(mode: .automatic(delay: .seconds(0.25)) | .manual, { old, new, error in
+//			guard let name else { error("Name cannot be nil"); return }
+//			if name.isBlank { error("Name cannot be blank") }
+//			if name.count < 2 { error("Name cannot be shorter than 2 characters") }
+//			if name.rangeOfCharacter(from: .symbols) != nil { error("Name cannot contain special characters or symbols") }
+//		})
+//		var name: String? = nil
 
-//			@Validation(mode: .automatic(delay: .seconds(0.25)) | .manual, { old, new, error in
-//				guard let name else { error("Name cannot be nil"); return }
-//				if name.isBlank { error("Name cannot be blank") }
-//				if name.count < 2 { error("Name cannot be shorter than 2 characters") }
-//				if name.rangeOfCharacter(from: .symbols) != nil { error("Name cannot contain special characters or symbols") }
-//			})
-//			var name: String? = nil
+//		$name.validate()
 
-//			$name.validate()
-		}
+		XCTAssertNil(sut)
+		XCTAssertEqual($sut.errors, NonEmptyArray("Input cannot be nil"))
 
-		let sut = InputState(name: nil)
-		XCTAssertNil(sut.name)
-		XCTAssertEqual(sut.$name.errors, NonEmptyArray("Name cannot be nil"))
-
-		sut.name = ""
-		XCTAssertNil(sut.name)
-		XCTAssertEqual(sut.$name.errors, NonEmptyArray(
-			"Name cannot be blank",
-			"Name cannot be shorter than 2 characters"
+		sut = ""
+		XCTAssertNil(sut)
+		XCTAssertEqual($sut.errors, NonEmptyArray(
+			"Input cannot be blank",
+			"Input cannot be shorter than 2 characters"
 		))
 
-		sut.name = "D"
-		XCTAssertNil(sut.name)
-		XCTAssertEqual(sut.$name.errors, NonEmptyArray(
-			"Name cannot be shorter than 2 characters"
+		sut = "D"
+		XCTAssertNil(sut)
+		XCTAssertEqual($sut.errors, NonEmptyArray(
+			"Input cannot be shorter than 2 characters"
 		))
 
-		sut.name = "Da"
-		XCTAssertEqual(sut.name, "Da")
-		XCTAssertNil(sut.$name.errors)
+		sut = "Da"
+		XCTAssertEqual(sut, "Da")
+		XCTAssertNil($sut.errors)
 
-		sut.name = "David"
-		XCTAssertEqual(sut.name, "David")
-		XCTAssertNil(sut.$name.errors)
+		sut = "David"
+		XCTAssertEqual(sut, "David")
+		XCTAssertNil($sut.errors)
 
-		sut.name = "David$"
-		XCTAssertNil(sut.name)
-		XCTAssertEqual(sut.$name.errors, NonEmptyArray(
-			"Name cannot contain special characters or symbols"
+		sut = "David$"
+		XCTAssertNil(sut)
+		XCTAssertEqual($sut.errors, NonEmptyArray(
+			"Input cannot contain special characters or symbols"
 		))
 	}
 }

@@ -10,12 +10,12 @@ public enum ValidationState<Value, Error> {
 	case valid
 }
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
 @propertyWrapper
 @dynamicMemberLookup
 #if canImport(Observation)
 @Observable
 #endif
-@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
 public final class Validation<Value, Error> {
 	private(set) public var rawValue: Value?
 //	public var state: Value?
