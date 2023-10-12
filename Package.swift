@@ -32,17 +32,17 @@ let package = Package(
 	]
 )
 
-#if !os(Linux)
-package.targets.append(contentsOf: [
-	.target(
-		name: "ComposableValidation",
-		dependencies: [
-			.product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-//			"ValidationCore",
-		]
-	),
-])
-#endif
+//#if !os(Linux)
+//package.targets.append(contentsOf: [
+//	.target(
+//		name: "ComposableValidation",
+//		dependencies: [
+//			.product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+////			"ValidationCore",
+//		]
+//	),
+//])
+//#endif
 
 package.dependencies += [
 	.package(url: "https://github.com/davdroman/swift-builders", from: "0.1.0"),
