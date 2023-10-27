@@ -40,13 +40,10 @@ public final class Validation<Value, Error> {
 	}
 
 	public var projectedValue: Validation<Value, Error> {
-		self
+		get { self }
+		@available(*, unavailable)
+		set { fatalError() }
 	}
-
-//	internal var readOnlyProjectedValue: Validation<Value, Error> {
-//		get { self }
-//		set { fatalError() }
-//	}
 
 	public var validated: Validated<Value, Error>? {
 		if let errors = NonEmpty(rawValue: rule.validate(rawValue)) {

@@ -41,26 +41,43 @@ struct ValidationPreview: PreviewProvider {
 	}
 
 	struct ValidationView: View {
+		@Observable
+		final class Inputs {
+			@ObservationIgnored
+			@Validation({ input in
+				switch input {
+				case nil: "Cannot be nil"
+				case let input?:
+					if input.isEmpty { "Cannot be empty" }
+					if input.isBlank { "Cannot be blank" }
+				}
+			})
+			var inputA: String? = nil
+
+			@ObservationIgnored
+			@Validation({ input in
+				switch input {
+				case nil: "Cannot be nil"
+				case let input?:
+					if input.isEmpty { "Cannot be empty" }
+					if input.isBlank { "Cannot be blank" }
+				}
+			})
+			var inputB: String? = nil
+		}
+
 		@State
-		@Validation({ input in
-			switch input {
-			case nil: "Cannot be nil"
-			case let input?:
-				if input.isEmpty { "Cannot be empty" }
-				if input.isBlank { "Cannot be blank" }
-			}
-		})
-		var name: String? = nil
+		var inputs = Inputs()
 
 		var body: some View {
 			VStack(alignment: .leading) {
 				TextField(
 					"Name",
-					text: Binding(validating: $name, default: "")
+					text: Binding(validating: $inputs.$inputA, default: "")
 				)
 				.textFieldStyle(.roundedBorder)
 
-				if let error = $name.errors?.first {
+				if let error = $inputs.$inputA.errors?.first {
 					Text(error)
 						.foregroundColor(.red)
 						.font(.footnote)
