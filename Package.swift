@@ -35,6 +35,12 @@ let package = Package(
 //#if !os(Linux)
 //package.targets.append(contentsOf: [
 //	.target(
+//		name: "CombineValidation",
+//		dependencies: [
+////			"ValidationCore",
+//		]
+//	),
+//	.target(
 //		name: "ComposableValidation",
 //		dependencies: [
 //			.product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
