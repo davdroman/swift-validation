@@ -15,10 +15,16 @@ let package = Package(
 	],
 	targets: [
 		.target(
-			name: "Validation",
+			name: "CoreValidation",
 			dependencies: [
 				.product(name: "Builders", package: "swift-builders"),
 				.product(name: "Validated", package: "swift-validated"),
+			]
+		),
+		.target(
+			name: "Validation",
+			dependencies: [
+				"CoreValidation",
 			]
 		),
 		.testTarget(name: "ValidationTests", dependencies: [
@@ -29,6 +35,10 @@ let package = Package(
 				condition: .when(platforms: [.iOS, .macOS, .tvOS, .watchOS])
 			),
 		]),
+
+		.testTarget(name: "CoreValidationTests", dependencies: [
+			"CoreValidation",
+		])
 	]
 )
 
@@ -37,14 +47,15 @@ let package = Package(
 //	.target(
 //		name: "CombineValidation",
 //		dependencies: [
-////			"ValidationCore",
+////			"CoreValidation",
+//			.product(name: "Republished", package: "Republished"),
 //		]
 //	),
 //	.target(
 //		name: "ComposableValidation",
 //		dependencies: [
 //			.product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-////			"ValidationCore",
+////			"CoreValidation",
 //		]
 //	),
 //])
