@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "republished",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/davdroman/Republished",
+      "state" : {
+        "branch" : "lower-deployment-targets",
+        "revision" : "e28b9bfaafc4a8b203000f037afdd82e8da8fd5f"
+      }
+    },
+    {
       "identity" : "swift-builders",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/davdroman/swift-builders",
