@@ -2,27 +2,29 @@
 import SwiftUI
 
 extension Binding {
+	@MainActor
 	public init<Error>(
 		validating validation: Binding<ValidationBase<Value, Error>>,
 		default: Value
 	) {
 		self.init(
-			get: { validation.wrappedValue.rawValue ?? `default` },
-			set: { validation.wrappedValue.wrappedValue = $0 }
-		)
-	}
-
-	public init<Wrapped, Error>(
-		validating validation: Binding<ValidationBase<Wrapped, Error>>
-	) where Value == Wrapped? {
-		self.init(
 			get: { validation.wrappedValue.rawValue },
 			set: { validation.wrappedValue.wrappedValue = $0 }
 		)
 	}
+
+//	public init<Wrapped, Error>(
+//		validating validation: Binding<ValidationBase<Wrapped, Error>>
+//	) where Value == Wrapped? {
+//		self.init(
+//			get: { validation.wrappedValue.rawValue },
+//			set: { validation.wrappedValue.wrappedValue = $0 }
+//		)
+//	}
 }
 
 extension Binding {
+	@MainActor
 	public subscript<V, Error, T>(
 		dynamicMember keyPath: KeyPath<ValidationState<V, Error>, T?>
 	) -> T? where Value == ValidationBase<V, Error> {
