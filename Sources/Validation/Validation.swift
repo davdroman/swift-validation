@@ -22,11 +22,11 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error> {
 		set { super.wrappedValue = newValue }
 	}
 
-	public var projectedValue: Validation<Value, Error> {
-		get { self }
-		@available(*, unavailable) 
-		set { fatalError() }
-	}
+//	public var projectedValue: Validation<Value, Error> {
+//		get { self }
+//		@available(*, unavailable) 
+//		set { fatalError() }
+//	}
 
 //	public var wrappedValue: Value? {
 //		get {

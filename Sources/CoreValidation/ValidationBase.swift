@@ -39,6 +39,12 @@ open class ValidationBase<Value, Error> {
 		}
 	}
 
+	public var projectedValue: ValidationBase<Value, Error> {
+		get { self }
+		@available(*, unavailable)
+		set { fatalError() }
+	}
+
 	private func validateIfNeeded() {
 		// TODO: guard mode.isAutomatic else { return }
 		validate()
