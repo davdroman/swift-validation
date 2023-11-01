@@ -12,10 +12,10 @@
     {
       "identity" : "republished",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/davdroman/Republished",
+      "location" : "https://github.com/adam-zethraeus/Republished",
       "state" : {
-        "branch" : "lower-deployment-targets",
-        "revision" : "e28b9bfaafc4a8b203000f037afdd82e8da8fd5f"
+        "branch" : "main",
+        "revision" : "1464a43a09b22b6ca23546a212b11e6b9fbca4fb"
       }
     },
     {
