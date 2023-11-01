@@ -18,6 +18,7 @@ let package = Package(
 			name: "CoreValidation",
 			dependencies: [
 				.product(name: "Builders", package: "swift-builders"),
+				.product(name: "NonEmpty", package: "swift-nonempty"),
 				.product(name: "Validated", package: "swift-validated"),
 			]
 		),
@@ -65,6 +66,7 @@ package.dependencies += [
 	.package(url: "https://github.com/davdroman/swift-builders", from: "0.1.0"),
 	.package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
 	.package(url: "https://github.com/adam-zethraeus/Republished", branch: "main"),
+	.package(url: "https://github.com/pointfreeco/swift-nonempty", from: "0.4.0"),
 	.package(url: "https://github.com/nalexn/ViewInspector", from: "0.1.0"),
 	.package(url: "https://github.com/pointfreeco/swift-validated", from: "0.1.0"),
 ]

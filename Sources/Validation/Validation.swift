@@ -1,72 +1,41 @@
-import Builders
+@_spi(package) import CoreValidation
 #if canImport(Observation)
 import Observation
 #endif
-@_exported import Validated
 
-public enum ValidationState<Value, Error> {
-	case validating
-	case invalid
-	case valid
-}
+@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
+public typealias SwiftValidation<Value, Error> = Validation<Value, Error>
 
 @available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
 @propertyWrapper
-@dynamicMemberLookup
 #if canImport(Observation)
 @Observable
 #endif
-public final class Validation<Value, Error> {
-	private(set) public var rawValue: Value?
-//	public var state: Value?
-	private let rule: ValidationRule<Value, Error>
-
-	public init(
-		wrappedValue rawValue: Value? = nil,
-		rule: ValidationRule<Value, Error>
-	) {
-		self.rawValue = rawValue
-		self.rule = rule
+public final class Validation<Value, Error>: ValidationBase<Value, Error> {
+	@_spi(package) public override var state: ValidationState<Value, Error> {
+		get { super.state }
+		set { super.state = newValue }
 	}
 
-	public convenience init(
-		wrappedValue rawValue: Value? = nil,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRuleHandler<Value, Error>
-	) {
-		self.init(
-			wrappedValue: rawValue,
-			rule: .init(handler: handler)
-		)
+	public override var wrappedValue: Value? {
+		get { super.wrappedValue }
+		set { super.wrappedValue = newValue }
 	}
 
 	public var projectedValue: Validation<Value, Error> {
 		get { self }
-		@available(*, unavailable)
+		@available(*, unavailable) 
 		set { fatalError() }
 	}
 
-	public var validated: Validated<Value, Error>? {
-		if let errors = NonEmpty(rawValue: rule.validate(rawValue)) {
-			return .invalid(errors)
-		} else if let value = rawValue {
-			return .valid(value)
-		} else {
-			return nil
-		}
-	}
-
-	public subscript<T>(dynamicMember keyPath: KeyPath<Validated<Value, Error>, T?>) -> T? {
-		validated?[keyPath: keyPath]
-	}
-
-	public var wrappedValue: Value? {
-		get {
-			validated?.value
-		}
-		set {
-			rawValue = newValue
-		}
-	}
+//	public var wrappedValue: Value? {
+//		get {
+//			validated?.value
+//		}
+//		set {
+//			rawValue = newValue
+//		}
+//	}
 }
 
 //extension Validation: Sendable where Value: Sendable, Error: Sendable {}

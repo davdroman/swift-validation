@@ -1,4 +1,5 @@
 @testable import CoreValidation
+import NonEmpty
 import XCTest
 
 final class ValidationPhaseTests: XCTestCase {
@@ -27,14 +28,14 @@ final class ValidationPhaseTests: XCTestCase {
 	}
 
 	func testComputedProperties_invalid() throws {
-		let sut = ValidationPhase<String, String>.invalid(["error"])
+		let sut = ValidationPhase<String, String>.invalid(NonEmptyArray("error"))
 
 		XCTAssert(sut.isIdle == false)
 		XCTAssert(sut.isValidating == false)
 		XCTAssert(sut.isInvalid == true)
 		XCTAssert(sut.isValid == false)
 
-		XCTAssert(sut.errors == ["error"])
+		XCTAssert(sut.errors == NonEmptyArray("error"))
 		XCTAssert(sut.value == nil)
 	}
 
