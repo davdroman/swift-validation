@@ -64,7 +64,7 @@ let package = Package(
 package.dependencies += [
 	.package(url: "https://github.com/davdroman/swift-builders", from: "0.1.0"),
 	.package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
-	.package(url: "https://github.com/adam-zethraeus/Republished", branch: "main"),
+	.package(url: "https://github.com/adam-zethraeus/Republished", from: "1.2.0"),
 	.package(url: "https://github.com/pointfreeco/swift-nonempty", from: "0.4.0"),
 	.package(url: "https://github.com/nalexn/ViewInspector", from: "0.1.0"),
 ]

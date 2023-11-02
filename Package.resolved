@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/adam-zethraeus/Republished",
       "state" : {
-        "branch" : "main",
-        "revision" : "1464a43a09b22b6ca23546a212b11e6b9fbca4fb"
+        "revision" : "1464a43a09b22b6ca23546a212b11e6b9fbca4fb",
+        "version" : "1.2.0"
       }
     },
     {
