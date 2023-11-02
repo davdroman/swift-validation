@@ -7,6 +7,9 @@ public enum ValidationPhase<Value, Error> {
 	case valid(Value)
 }
 
+extension ValidationPhase: Equatable where Value: Equatable, Error: Equatable {}
+extension ValidationPhase: Hashable where Value: Hashable, Error: Hashable {}
+
 extension ValidationPhase {
 	public var isIdle: Bool {
 		if case .idle = self { return true }

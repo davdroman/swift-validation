@@ -8,3 +8,6 @@ public struct ValidationState<Value, Error> {
 		phase[keyPath: keyPath]
 	}
 }
+
+extension ValidationState: Equatable where Value: Equatable, Error: Equatable {}
+extension ValidationState: Hashable where Value: Hashable, Error: Hashable {}
