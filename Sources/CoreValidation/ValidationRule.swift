@@ -1,6 +1,6 @@
 import Builders
 
-public typealias ValidationRuleHandler<Value, Error> = @Sendable (Value?) -> [Error]
+public typealias ValidationRuleHandler<Value, Error> = @Sendable (History<Value>) -> [Error]
 
 public struct ValidationRule<Value, Error> {
 	private let handler: ValidationRuleHandler<Value, Error>
@@ -11,9 +11,7 @@ public struct ValidationRule<Value, Error> {
 		self.handler = handler
 	}
 
-	func validate(_ value: Value?) -> [Error] {
+	func validate(_ value: History<Value>) -> [Error] {
 		handler(value)
 	}
 }
-
-extension ValidationRule: Sendable where Value: Sendable, Error: Sendable {}

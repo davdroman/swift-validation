@@ -55,7 +55,7 @@ open class ValidationBase<Value, Error> {
 
 		state.phase = .validating
 
-		if let errors = NonEmpty(rawValue: rule.validate(state.rawValue)) {
+		if let errors = NonEmpty(rawValue: rule.validate(state.$rawValue)) {
 			state.phase = .invalid(errors)
 		} else {
 			state.phase = .valid(state.rawValue)
