@@ -38,10 +38,6 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 //		set { fatalError() }
 //	}
 
-	public subscript<T>(dynamicMember keyPath: KeyPath<Validated<Value, Error>, T?>) -> T? {
-		validated?[keyPath: keyPath]
-	}
-
 	public var wrappedValue: Value? {
 		get {
 			validated?.value

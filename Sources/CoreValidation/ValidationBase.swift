@@ -1,5 +1,5 @@
 import Builders
-import Validated
+import NonEmpty
 
 @MainActor
 @propertyWrapper
@@ -68,16 +68,6 @@ open class ValidationBase<Value, Error> {
 			state.phase = .idle
 		}
 	}
-
-//	public var validated: Validated<Value, Error>? {
-//		if let errors = NonEmpty(rawValue: rule.validate(state.rawValue)) {
-//			return .invalid(errors)
-//		} else if let value = rawValue {
-//			return .valid(value)
-//		} else {
-//			return nil
-//		}
-//	}
 
 //	public subscript<T>(dynamicMember keyPath: KeyPath<Validated<Value, Error>, T?>) -> T? {
 //		validated?[keyPath: keyPath]
