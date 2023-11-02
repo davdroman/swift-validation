@@ -46,7 +46,7 @@ open class ValidationBase<Value, Error> {
 	}
 
 	private func validateIfNeeded() {
-		// TODO: guard mode.isAutomatic else { return }
+		// TODO: guard mode.isManual else { return }
 		validate()
 	}
 
