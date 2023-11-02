@@ -71,10 +71,11 @@ package.dependencies += [
 
 //for target in package.targets where target.type != .system {
 //	target.swiftSettings = target.swiftSettings ?? []
-//	target.swiftSettings?.append(
-//		.unsafeFlags([
-//			"-Xfrontend", "-warn-concurrency",
-//			"-Xfrontend", "-enable-actor-data-race-checks",
-//		])
-//	)
+//	target.swiftSettings?.append(contentsOf: [
+//		.enableUpcomingFeature("ConciseMagicFile"),
+//		.enableUpcomingFeature("ExistentialAny"),
+//		.enableUpcomingFeature("StrictConcurrency"),
+//		.enableUpcomingFeature("ImplicitOpenExistentials"),
+//		.enableUpcomingFeature("BareSlashRegexLiterals"),
+//	])
 //}
