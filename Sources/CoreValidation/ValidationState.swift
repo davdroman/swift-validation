@@ -1,5 +1,6 @@
 @dynamicMemberLookup
 public struct ValidationState<Value, Error> {
+	@History
 	public internal(set) var rawValue: Value
 	public internal(set) var phase: ValidationPhase<Value, Error>
 
