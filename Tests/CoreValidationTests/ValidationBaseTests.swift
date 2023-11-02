@@ -6,7 +6,7 @@ import XCTest
 final class ValidationBaseTests: XCTestCase {
 	func test() {
 		@ValidationBase({ $input in
-			if $input.oldValues.isEmpty { "Must be set" }
+			if $input.isUnset { "Must be set" }
 			if input.isEmpty { "Cannot be empty" }
 			if input.isBlank { "Cannot be blank" }
 		})
@@ -16,18 +16,22 @@ final class ValidationBaseTests: XCTestCase {
 
 		sut = ""
 		XCTAssertEqual(sut, nil)
+		XCTAssertEqual($sut.errors, NonEmptyArray("Must be set", "Cannot be empty", "Cannot be blank"))
+
+		sut = " "
+		XCTAssertEqual(sut, nil)
+		XCTAssertEqual($sut.errors, NonEmptyArray("Cannot be blank"))
+
+		sut = ""
+		XCTAssertEqual(sut, nil)
 		XCTAssertEqual($sut.errors, NonEmptyArray("Cannot be empty", "Cannot be blank"))
 
 		sut = " "
 		XCTAssertEqual(sut, nil)
 		XCTAssertEqual($sut.errors, NonEmptyArray("Cannot be blank"))
 
-		sut = "  "
-		XCTAssertEqual(sut, nil)
-		XCTAssertEqual($sut.errors, NonEmptyArray("Cannot be blank"))
-
-		sut = "Some value"
-		XCTAssertEqual(sut, "Some value")
+		sut = " S"
+		XCTAssertEqual(sut, " S")
 		XCTAssertEqual($sut.errors, nil)
 	}
 }

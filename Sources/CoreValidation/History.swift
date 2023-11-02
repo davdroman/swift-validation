@@ -27,3 +27,9 @@ public struct History<Value> {
 
 extension History: Equatable where Value: Equatable {}
 extension History: Hashable where Value: Hashable {}
+
+extension History where Value: StringProtocol {
+	public var isUnset: Bool {
+		wrappedValue.isEmpty && oldValues.filter { !$0.isEmpty }.isEmpty
+	}
+}
