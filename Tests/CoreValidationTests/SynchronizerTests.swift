@@ -1,45 +1,86 @@
 @testable import CoreValidation
+import Dependencies
 import XCTest
 
 @MainActor
 final class SynchronizerTests: XCTestCase {
-	func test() async throws {
+	func test() async {
 		@MainActor
-		final class Printer {
-			let name: String
+		final class Doer {
 			let synchronizer: Synchronizer
 
-			init(name: String, synchronizer: Synchronizer) {
-				self.name = name
+			init(synchronizer: Synchronizer) {
 				self.synchronizer = synchronizer
 			}
 
-			func waitRandomlyAndPrint(id: some Hashable) {
+			func `do`(for duration: Duration, id: some Hashable, didFinish: ActorIsolated<Bool>) {
 				synchronizer.start(id: id)
 
 				Task {
-					let seconds = UInt64.random(in: 1...3)
-					try? await Task.sleep(nanoseconds: NSEC_PER_SEC * seconds)
-					await synchronizer.finish(id: id)
-					print("\(name) printed in \(seconds) seconds!")
+					@Dependency(\.continuousClock) var clock
+					do {
+						try await clock.sleep(for: duration)
+						await synchronizer.finish(id: id)
+						await didFinish.setValue(true)
+					} catch {
+						XCTFail(error.localizedDescription)
+					}
 				}
 			}
 		}
 
 		let sut = Synchronizer()
 
-		let printer1 = Printer(name: "Printer 1", synchronizer: sut)
-		let printer2 = Printer(name: "Printer 2", synchronizer: sut)
-		let printer3 = Printer(name: "Printer 3", synchronizer: sut)
-		let printer4 = Printer(name: "Printer 4", synchronizer: sut)
-		let printer5 = Printer(name: "Printer 5", synchronizer: sut)
+		let doer1 = Doer(synchronizer: sut)
+		let doer2 = Doer(synchronizer: sut)
+		let doer3 = Doer(synchronizer: sut)
+		let doer4 = Doer(synchronizer: sut)
+		let doer5 = Doer(synchronizer: sut)
 
-		printer1.waitRandomlyAndPrint(id: 1)
-		printer2.waitRandomlyAndPrint(id: 1)
-		printer3.waitRandomlyAndPrint(id: 1)
-		printer4.waitRandomlyAndPrint(id: 1)
-		printer5.waitRandomlyAndPrint(id: 1)
+		let doer1DidFinish = ActorIsolated<Bool>(false)
+		let doer2DidFinish = ActorIsolated<Bool>(false)
+		let doer3DidFinish = ActorIsolated<Bool>(false)
+		let doer4DidFinish = ActorIsolated<Bool>(false)
+		let doer5DidFinish = ActorIsolated<Bool>(false)
 
-		await sut.wait(id: 1)
+		func getDidFinishValues() async -> [Bool] {
+			await [
+				doer1DidFinish.value,
+				doer2DidFinish.value,
+				doer3DidFinish.value,
+				doer4DidFinish.value,
+				doer5DidFinish.value,
+			]
+		}
+
+		let clock = TestClock()
+
+		withDependencies {
+			$0.continuousClock = clock
+		} operation: {
+			doer1.do(for: .seconds(2), id: 1, didFinish: doer1DidFinish)
+			doer2.do(for: .seconds(1), id: 1, didFinish: doer2DidFinish)
+			doer3.do(for: .seconds(2), id: 1, didFinish: doer3DidFinish)
+			doer4.do(for: .seconds(3), id: 1, didFinish: doer4DidFinish)
+			doer5.do(for: .seconds(1), id: 1, didFinish: doer5DidFinish)
+		}
+
+		var didFinishValues = await getDidFinishValues()
+		XCTAssert(didFinishValues.allSatisfy { !$0 })
+
+		await clock.advance(by: .seconds(1))
+
+		didFinishValues = await getDidFinishValues()
+		XCTAssert(didFinishValues.allSatisfy { !$0 })
+
+		await clock.advance(by: .seconds(1))
+
+		didFinishValues = await getDidFinishValues()
+		XCTAssert(didFinishValues.allSatisfy { !$0 })
+
+		await clock.advance(by: .seconds(1))
+
+		didFinishValues = await getDidFinishValues()
+		XCTAssert(didFinishValues.allSatisfy { $0 })
 	}
 }

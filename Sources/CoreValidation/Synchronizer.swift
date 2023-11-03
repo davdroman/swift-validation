@@ -17,11 +17,4 @@ final class Synchronizer {
 			await Task.yield()
 		}
 	}
-
-	func wait(id: some Hashable) async {
-		while tasks.value[id, default: 0] > 0 {
-			await Task.yield()
-		}
-		try? await Task.sleep(nanoseconds: 0)
-	}
 }
