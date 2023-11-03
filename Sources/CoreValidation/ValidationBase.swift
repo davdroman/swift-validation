@@ -50,15 +50,22 @@ open class ValidationBase<Value, Error> {
 		validate()
 	}
 
-	public func validate() {
-		// TODO: spin up and store an unstructured Task {
-
+	public func validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
 		state.phase = .validating
 
-		if let errors = NonEmpty(rawValue: rule.validate(state.$rawValue)) {
-			state.phase = .invalid(errors)
-		} else {
-			state.phase = .valid(state.rawValue)
+		if let id {
+			Synchronizer.shared.start(id: id)
+		}
+
+		// TODO: store the Task to debounce it when a new one comes in
+		Task {
+			await Synchronizer.shared.finish(id: id)
+
+			if let errors = NonEmpty(rawValue: rule.validate(state.$rawValue)) {
+				state.phase = .invalid(errors)
+			} else {
+				state.phase = .valid(state.rawValue)
+			}
 		}
 	}
 
