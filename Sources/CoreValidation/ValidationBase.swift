@@ -60,7 +60,10 @@ open class ValidationBase<Value, Error> {
 	public func validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
 		state.phase = .validating
 
-		let history = state.$rawValue // we gotta make a copy here in case the value is changed while validation is in progress
+		// We gotta make a copy this early on in case the value is changed
+		// later while validation is in progress.
+		// TODO: unit test this scenario
+		let history = state.$rawValue
 
 		if let id {
 			Synchronizer.shared.start(id: id)
