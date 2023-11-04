@@ -64,7 +64,7 @@ open class ValidationBase<Value, Error> {
 
 		// TODO: store the Task to debounce it when a new one comes in
 		Task {
-			if let delay = rule.mode.automatic|? {
+			if let delay = rule.mode.delay {
 				#if os(Linux)
 				@Dependency(\.continuousClock) var clock
 				try? await clock.sleep(for: .seconds(delay))
