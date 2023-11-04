@@ -2,6 +2,10 @@
 public struct History<Value> {
 	public var oldValues: [Value] = []
 
+	public var currentValue: Value {
+		wrappedValue
+	}
+
 	public var wrappedValue: Value {
 		didSet {
 			oldValues.append(oldValue)

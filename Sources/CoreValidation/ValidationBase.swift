@@ -1,4 +1,5 @@
 import Builders
+import Dependencies
 import NonEmpty
 
 @MainActor
@@ -20,11 +21,12 @@ open class ValidationBase<Value, Error> {
 
 	public convenience init(
 		wrappedValue rawValue: Value,
+		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRuleHandler<Value, Error>
 	) {
 		self.init(
 			wrappedValue: rawValue,
-			rule: .init(handler: handler)
+			rule: .init(mode: mode, handler: handler)
 		)
 	}
 
@@ -46,8 +48,9 @@ open class ValidationBase<Value, Error> {
 	}
 
 	private func validateIfNeeded() {
-		// TODO: guard mode.isAutomatic else { return }
-		validate()
+		if rule.mode.is(\.automatic) {
+			validate()
+		}
 	}
 
 	public func validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
@@ -59,12 +62,25 @@ open class ValidationBase<Value, Error> {
 
 		// TODO: store the Task to debounce it when a new one comes in
 		Task {
+			if let delay = rule.mode.automatic|? {
+				#if os(Linux)
+				@Dependency(\.continuousClock) var clock
+				try? await clock.sleep(for: .seconds(delay))
+				#else
+				@Dependency(\.mainQueue) var mainQueue
+				try? await mainQueue.sleep(for: .seconds(delay))
+				#endif
+			}
+
+			let history = state.$rawValue // we gotta make a copy here in case the value is changed while validation is in progress
+			let errors = rule.evaluate(history) // TODO: make async
+
 			await Synchronizer.shared.finish(id: id)
 
-			if let errors = NonEmpty(rawValue: rule.validate(state.$rawValue)) {
+			if let errors = NonEmpty(rawValue: errors) {
 				state.phase = .invalid(errors)
 			} else {
-				state.phase = .valid(state.rawValue)
+				state.phase = .valid(history.currentValue)
 			}
 		}
 	}
