@@ -1,5 +1,7 @@
+import CasePaths
 import NonEmpty
 
+@CasePathable
 public enum ValidationPhase<Value, Error> {
 	case idle
 	case validating
@@ -12,34 +14,28 @@ extension ValidationPhase: Hashable where Value: Hashable, Error: Hashable {}
 
 extension ValidationPhase {
 	public var isIdle: Bool {
-		if case .idle = self { return true }
-		else { return false }
+		self.is(\.idle)
 	}
 
 	public var isValidating: Bool {
-		if case .validating = self { return true }
-		else { return false }
+		self.is(\.validating)
 	}
 
 	public var isInvalid: Bool {
-		if case .invalid = self { return true }
-		else { return false }
+		self.is(\.invalid)
 	}
 
 	public var isValid: Bool {
-		if case .valid = self { return true }
-		else { return false }
+		self.is(\.valid)
 	}
 }
 
 extension ValidationPhase {
 	public var errors: NonEmptyArray<Error>? {
-		if case .invalid(let errors) = self { return errors }
-		else { return nil }
+		self[case: \.invalid]
 	}
 
 	public var value: Value? {
-		if case .valid(let value) = self { return value }
-		else { return nil }
+		self[case: \.valid]
 	}
 }
