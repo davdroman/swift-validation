@@ -28,11 +28,8 @@ jobs:
           # - tvOS
           # - watchOS
         swift:
-          - 5.8
           - 5.9
         include:
-          - swift: 5.8
-            os: macos-13
           - swift: 5.9
             os: macos-13
           - action: test
@@ -47,7 +44,6 @@ jobs:
           action: ${{ matrix.action }}
           platform: ${{ matrix.platform }}
           swift: ~${{ matrix.swift }}
-          # scheme: Builders
   linux:
     if: true
     name: Linux (Swift ${{ matrix.swift }})
@@ -56,7 +52,6 @@ jobs:
       fail-fast: false
       matrix:
         swift:
-          - 5.8
           - 5.9
     container:
       image: swift:${{ matrix.swift }}
