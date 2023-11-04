@@ -56,6 +56,8 @@ open class ValidationBase<Value, Error> {
 	public func validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
 		state.phase = .validating
 
+		let history = state.$rawValue // we gotta make a copy here in case the value is changed while validation is in progress
+
 		if let id {
 			Synchronizer.shared.start(id: id)
 		}
@@ -72,7 +74,6 @@ open class ValidationBase<Value, Error> {
 				#endif
 			}
 
-			let history = state.$rawValue // we gotta make a copy here in case the value is changed while validation is in progress
 			let errors = rule.evaluate(history) // TODO: make async
 
 			await Synchronizer.shared.finish(id: id)
