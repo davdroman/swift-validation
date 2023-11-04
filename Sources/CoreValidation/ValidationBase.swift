@@ -7,14 +7,17 @@ import NonEmpty
 @dynamicMemberLookup
 open class ValidationBase<Value, Error> {
 	@_spi(package) open var state: ValidationState<Value, Error>
-	package let rule: ValidationRule<Value, Error>
+	package let rules: ValidationRules<Value, Error>
+	package let mode: ValidationMode
 
 	public init(
 		wrappedValue rawValue: Value,
-		rule: ValidationRule<Value, Error>
+		of rules: ValidationRules<Value, Error>,
+		mode: ValidationMode = .automatic
 	) {
 		self.state = .init(rawValue: rawValue, phase: .idle)
-		self.rule = rule
+		self.rules = rules
+		self.mode = mode
 
 		self.validateIfNeeded()
 	}
@@ -22,11 +25,12 @@ open class ValidationBase<Value, Error> {
 	public convenience init(
 		wrappedValue rawValue: Value,
 		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRuleHandler<Value, Error>
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) {
 		self.init(
 			wrappedValue: rawValue,
-			rule: .init(mode: mode, handler: handler)
+			of: ValidationRules(handler: handler),
+			mode: mode
 		)
 	}
 
@@ -48,7 +52,7 @@ open class ValidationBase<Value, Error> {
 	}
 
 	private func validateIfNeeded() {
-		if rule.mode.is(\.automatic) {
+		if mode.is(\.automatic) {
 			validate()
 		}
 	}
@@ -64,7 +68,7 @@ open class ValidationBase<Value, Error> {
 
 		// TODO: store the Task to debounce it when a new one comes in
 		Task {
-			if let delay = rule.mode.delay {
+			if let delay = mode.delay {
 				#if os(Linux)
 				@Dependency(\.continuousClock) var clock
 				try? await clock.sleep(for: .seconds(delay))
@@ -74,7 +78,7 @@ open class ValidationBase<Value, Error> {
 				#endif
 			}
 
-			let errors = rule.evaluate(history) // TODO: make async
+			let errors = rules.evaluate(history) // TODO: make async
 
 			await Synchronizer.shared.finish(id: id)
 
