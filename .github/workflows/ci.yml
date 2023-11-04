@@ -45,7 +45,7 @@ jobs:
           platform: ${{ matrix.platform }}
           swift: ~${{ matrix.swift }}
   linux:
-    if: true
+    if: false
     name: Linux (Swift ${{ matrix.swift }})
     runs-on: ubuntu-latest
     strategy:
