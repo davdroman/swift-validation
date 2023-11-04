@@ -49,7 +49,7 @@ jobs:
           swift: ~${{ matrix.swift }}
           # scheme: Builders
   linux:
-    if: false
+    if: true
     name: Linux (Swift ${{ matrix.swift }})
     runs-on: ubuntu-latest
     strategy:
