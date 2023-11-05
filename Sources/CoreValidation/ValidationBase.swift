@@ -81,7 +81,7 @@ open class ValidationBase<Value, Error> {
 				#endif
 			}
 
-			let errors = rules.evaluate(history) // TODO: make async
+			let errors = await rules.evaluate(history)
 
 			await Synchronizer.shared.finish(id: id)
 
