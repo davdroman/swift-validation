@@ -63,11 +63,17 @@ open class ValidationBase<Value, Error> {
 
 	private func validateIfNeeded() {
 		if mode.is(\.automatic) {
-			validate()
+			_validate()
 		}
 	}
 
 	public func validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
+		if mode.is(\.manual) {
+			_validate()
+		}
+	}
+
+	private func _validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
 		state.phase = .validating
 
 		// We gotta make a copy this early on in case the value is changed
