@@ -95,7 +95,14 @@ open class ValidationBase<Value, Error> {
 
 			let errors = await rules.evaluate(history)
 
-			await Synchronizer.shared.finish(id: id)
+			// Unit test this:
+			// Group validation should be stopped if synchronizer is cancelled while
+			// validation is ongoing.
+			do {
+				try await Synchronizer.shared.finish(id: id)
+			} catch {
+				return
+			}
 
 			if let errors = NonEmpty(rawValue: errors) {
 				state.phase = .invalid(errors)

@@ -20,7 +20,7 @@ final class SynchronizerTests: XCTestCase {
 					@Dependency(\.continuousClock) var clock
 					do {
 						try await clock.sleep(for: duration)
-						await synchronizer.finish(id: id)
+						try await synchronizer.finish(id: id)
 						await didFinish.setValue(true)
 					} catch {
 						XCTFail(error.localizedDescription)
