@@ -73,11 +73,10 @@ open class ValidationBase<Value, Error> {
 			if let delay = mode.delay {
 				#if os(Linux)
 				@Dependency(\.continuousClock) var clock
-				try? await clock.sleep(for: .seconds(delay))
 				#else
-				@Dependency(\.mainQueue) var mainQueue
-				try? await mainQueue.sleep(for: .seconds(delay))
+				@Dependency(\.mainQueue) var clock
 				#endif
+				try? await clock.sleep(for: .seconds(delay))
 			}
 
 			let errors = await rules.evaluate(history)
