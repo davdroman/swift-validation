@@ -1,3 +1,4 @@
+import Clocks
 import ConcurrencyExtras
 @testable import CoreValidation
 import NonEmpty
@@ -45,6 +46,29 @@ final class ValidationBaseTests: XCTestCase {
 		sut = " S"
 		await Task.yield()
 		XCTAssertEqual(sut, " S")
+		XCTAssertEqual($sut.errors, nil)
+	}
+
+	func testMutationDuringManualValidation() async {
+		let clock = TestClock()
+		@ValidationBase<String, String?>(mode: .manual, { $input in
+			let _ = try! await clock.sleep(for: .seconds(1))
+			if $input.isUnset { nil }
+			if input.isEmpty { "Cannot be empty" }
+			if input.isBlank { "Cannot be blank" }
+		})
+		var sut: String? = ""
+		await Task.yield()
+		XCTAssertEqual($sut.isIdle, true)
+		XCTAssertEqual(sut, nil)
+		XCTAssertEqual($sut.errors, nil)
+
+		sut = "Input"
+		$sut.validate()
+		sut = ""
+		await clock.advance(by: .seconds(1))
+		XCTAssertEqual($sut.isValid, true)
+		XCTAssertEqual(sut, "Input")
 		XCTAssertEqual($sut.errors, nil)
 	}
 }

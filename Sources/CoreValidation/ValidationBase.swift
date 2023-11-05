@@ -62,7 +62,6 @@ open class ValidationBase<Value, Error> {
 
 		// We gotta make a copy this early on in case the value is changed
 		// later while validation is in progress.
-		// TODO: unit test this scenario
 		let history = state.$rawValue
 
 		if let id {
