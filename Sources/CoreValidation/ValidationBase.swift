@@ -7,8 +7,9 @@ import NonEmpty
 @dynamicMemberLookup
 open class ValidationBase<Value, Error> {
 	@_spi(package) open var state: ValidationState<Value, Error>
-	package let rules: ValidationRules<Value, Error>
-	package let mode: ValidationMode
+	private let rules: ValidationRules<Value, Error>
+	private let mode: ValidationMode
+	private var task: Task<Void, Never>? = nil
 
 	public init(
 		wrappedValue rawValue: Value,
@@ -77,15 +78,19 @@ open class ValidationBase<Value, Error> {
 			Synchronizer.shared.start(id: id)
 		}
 
-		// TODO: store the Task to debounce it when a new one comes in
-		Task {
+		task?.cancel()
+		task = Task {
 			if let delay = mode.delay {
 				#if os(Linux)
 				@Dependency(\.continuousClock) var clock
 				#else
 				@Dependency(\.mainQueue) var clock
 				#endif
-				try? await clock.sleep(for: .seconds(delay))
+				do {
+					try await clock.sleep(for: .seconds(delay))
+				} catch {
+					return
+				}
 			}
 
 			let errors = await rules.evaluate(history)

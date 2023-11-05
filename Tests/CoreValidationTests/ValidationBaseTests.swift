@@ -1,5 +1,4 @@
-import Clocks
-import ConcurrencyExtras
+import Dependencies
 @testable import CoreValidation
 import NonEmpty
 import XCTest
@@ -70,5 +69,48 @@ final class ValidationBaseTests: XCTestCase {
 		XCTAssertEqual($sut.isValid, true)
 		XCTAssertEqual(sut, "Input")
 		XCTAssertEqual($sut.errors, nil)
+	}
+
+	func testAutomaticModeWithDelay() async throws {
+		#if os(Linux)
+		let clock = TestClock()
+		#else
+		let clock = DispatchQueue.test
+		#endif
+		await withDependencies {
+			#if os(Linux)
+			$0.continuousClock = clock
+			#else
+			$0.mainQueue = AnyScheduler(clock)
+			#endif
+		} operation: {
+			@ValidationBase<String, String?>(mode: .automatic(delay: 1), { $input in
+				if $input.isUnset { nil }
+				if input.isEmpty { "Cannot be empty" }
+				if input.isBlank { "Cannot be blank" }
+			})
+			var sut: String? = ""
+			await clock.advance(by: .seconds(1))
+			XCTAssertEqual($sut.isInvalid, true)
+			XCTAssertEqual(sut, nil)
+			XCTAssertEqual($sut.errors, NonEmptyArray(nil, "Cannot be empty", "Cannot be blank"))
+
+			sut = "Input A"
+			await clock.advance(by: .seconds(0.5))
+			XCTAssertEqual($sut.isValidating, true)
+			XCTAssertEqual(sut, nil)
+			XCTAssertEqual($sut.errors, nil)
+
+			sut = "Input B"
+			await clock.advance(by: .seconds(0.5))
+			XCTAssertEqual($sut.isValidating, true)
+			XCTAssertEqual(sut, nil)
+			XCTAssertEqual($sut.errors, nil)
+
+			await clock.advance(by: .seconds(0.5))
+			XCTAssertEqual($sut.isValid, true)
+			XCTAssertEqual(sut, "Input B")
+			XCTAssertEqual($sut.errors, nil)
+		}
 	}
 }
