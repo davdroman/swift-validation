@@ -40,7 +40,16 @@ open class ValidationBase<Value, Error> {
 		}
 		set {
 			guard let newValue else { return } // NO-OP when assigning nil. Hopefully one day we'll get asymmetric get/set.
+
+			let oldValue = state.rawValue
+			let hasValueChanged = !equals(oldValue, newValue)
+
 			state.rawValue = newValue
+
+			if hasValueChanged {
+				clearErrors()
+			}
+
 			validateIfNeeded()
 		}
 	}
@@ -105,4 +114,16 @@ open class ValidationBase<Value, Error> {
 	public subscript<T>(dynamicMember keyPath: KeyPath<ValidationState<Value, Error>, T>) -> T {
 		state[keyPath: keyPath]
 	}
+}
+
+// https://forums.swift.org/t/why-cant-existential-types-be-compared/59118/3
+fileprivate func equals(_ lhs: Any, _ rhs: Any) -> Bool {
+	func open<A: Equatable>(_ lhs: A, _ rhs: Any) -> Bool {
+		lhs == (rhs as? A)
+	}
+
+	guard let lhs = lhs as? any Equatable
+	else { return false }
+
+	return open(lhs, rhs)
 }
