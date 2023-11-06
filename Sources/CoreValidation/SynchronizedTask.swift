@@ -1,6 +1,6 @@
 import ConcurrencyExtras
 
-typealias SynchronizedTaskOperation = (_ synchronize: () async throws -> Void) async -> Void
+typealias SynchronizedTaskOperation = (_ synchronize: () async throws -> Void) async throws -> Void
 
 @MainActor
 @discardableResult
@@ -9,10 +9,11 @@ func SynchronizedTask(
 	priority: TaskPriority? = nil,
 	operation: @escaping SynchronizedTaskOperation
 ) -> Task<Void, Never> {
-	SynchronizedTaskPool.shared.start(id: id)
+	SynchronizedTaskPool.shared.prepare(id: id)
 
 	return Task {
-		await operation({ try await SynchronizedTaskPool.shared.finish(id: id) })
+		SynchronizedTaskPool.shared.start(id: id)
+		try? await operation({ try await SynchronizedTaskPool.shared.finish(id: id) })
 	}
 }
 
@@ -20,21 +21,46 @@ func SynchronizedTask(
 fileprivate final class SynchronizedTaskPool {
 	static let shared = SynchronizedTaskPool()
 
-	private var tasks: LockIsolated<[AnyHashable: Int]> = .init([:])
-
-	func start(id: some Hashable) {
-		self.tasks.withValue { $0[id, default: 0] += 1 }
+	struct TasksState {
+		var count: Int
+		var inProgress: Bool
 	}
 
-	func finish(id: some Hashable) async throws {
-		guard tasks.value[id] != nil else { return }
-		tasks.withValue { $0[id, default: 0] -= 1 }
-		while tasks.value[id, default: 0] > 0 {
-			await Task.yield()
+	var tasks: LockIsolated<[AnyHashable: TasksState]> = .init([:])
+
+	func prepare(id: some Hashable) {
+		tasks.withValue {
+			var state = $0[id] ?? .init(count: 0, inProgress: false)
+			if state.inProgress {
+				$0[id] = .init(count: 1, inProgress: false)
+			} else {
+				state.count += 1
+				$0[id] = state
+			}
 		}
 	}
 
-	private func cancel(id: some Hashable) {
+	func start(id: some Hashable) {
+		tasks.withValue {
+			$0[id]?.inProgress = true
+		}
+	}
 
+	func finish(id: some Hashable) async throws {
+		tasks.withValue {
+			if var state = $0[id] {
+				state.count -= 1
+				state.inProgress = true
+				$0[id] = state
+			}
+		}
+
+		while let ongoingTaskCount = tasks.value[id]?.count, ongoingTaskCount > 0 {
+			await Task.yield()
+		}
+
+		if tasks.value[id] == nil {
+			throw CancellationError()
+		}
 	}
 }

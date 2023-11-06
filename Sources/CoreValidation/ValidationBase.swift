@@ -85,17 +85,15 @@ open class ValidationBase<Value, Error> {
 				#else
 				@Dependency(\.mainQueue) var clock
 				#endif
-				do { try await clock.sleep(for: .seconds(delay)) }
-				catch { return }
+				try await clock.sleep(for: .seconds(delay))
 			}
 
 			let errors = await rules.evaluate(history)
 
-			// Unit test this:
+			// TODO: unit test this
 			// Group validation should be stopped if synchronizer is cancelled while
 			// validation is ongoing.
-			do { try await synchronize() }
-			catch { return }
+			try await synchronize()
 
 			if let errors = NonEmpty(rawValue: errors) {
 				state.phase = .invalid(errors)
@@ -105,10 +103,13 @@ open class ValidationBase<Value, Error> {
 		}
 
 		task?.cancel()
+		// TODO: write a unit test to verify this
+		// I think this might need to be deferred to the next run loop in order
+		// for synchronizer to be able to catch up to the latest cancellation
 		task = if let id {
 			SynchronizedTask(id: id, operation: operation)
 		} else {
-			Task { await operation({}) }
+			Task { try? await operation({}) }
 		}
 	}
 
