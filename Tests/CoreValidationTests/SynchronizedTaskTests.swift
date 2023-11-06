@@ -4,6 +4,64 @@ import XCTest
 
 @MainActor
 final class SynchronizedTaskTests: XCTestCase {
+	@MainActor
+	final class Doer {
+		private var task: SynchronizedTask? = nil
+
+		func `do`(
+			for duration: Duration,
+			id: some Hashable,
+			didFinish: ActorIsolated<Bool>,
+			cancellationCount: ActorIsolated<Int>? = nil
+		) {
+			task?.cancel()
+			task = SynchronizedTask(id: id) { synchronize in
+				@Dependency(\.continuousClock) var clock
+				try await clock.sleep(for: duration) // simulates work happening
+				try await synchronize()
+				await didFinish.setValue(true)
+			} onCancel: {
+				await cancellationCount?.withValue { $0 += 1 }
+			}
+		}
+	}
+
+	let doer1 = Doer()
+	let doer2 = Doer()
+	let doer3 = Doer()
+
+	let doer1DidFinish = ActorIsolated<Bool>(false)
+	let doer2DidFinish = ActorIsolated<Bool>(false)
+	let doer3DidFinish = ActorIsolated<Bool>(false)
+
+	let doer1CancellationCount = ActorIsolated<Int>(0)
+	let doer2CancellationCount = ActorIsolated<Int>(0)
+	let doer3CancellationCount = ActorIsolated<Int>(0)
+
+	var allDidFinishValues: [Bool] {
+		get async {
+			await [
+				doer1DidFinish.value,
+				doer2DidFinish.value,
+				doer3DidFinish.value,
+			]
+		}
+	}
+
+	var allCancellationCountValues: [Int] {
+		get async {
+			await [
+				doer1CancellationCount.value,
+				doer2CancellationCount.value,
+				doer3CancellationCount.value,
+			]
+		}
+	}
+
+	let clock = TestClock()
+
+	// MARK: Tests
+
 	override func invokeTest() {
 		withMainSerialExecutor {
 			super.invokeTest()
@@ -11,36 +69,6 @@ final class SynchronizedTaskTests: XCTestCase {
 	}
 
 	func testHappyPath() async {
-		@MainActor
-		final class Doer {
-			func `do`(for duration: Duration, id: some Hashable, didFinish: ActorIsolated<Bool>) {
-				SynchronizedTask(id: id) { synchronize in
-					@Dependency(\.continuousClock) var clock
-					try await clock.sleep(for: duration) // simulates work happening
-					try await synchronize()
-					await didFinish.setValue(true)
-				}
-			}
-		}
-
-		let doer1 = Doer()
-		let doer2 = Doer()
-		let doer3 = Doer()
-
-		let doer1DidFinish = ActorIsolated<Bool>(false)
-		let doer2DidFinish = ActorIsolated<Bool>(false)
-		let doer3DidFinish = ActorIsolated<Bool>(false)
-
-		func getDidFinishValues() async -> [Bool] {
-			await [
-				doer1DidFinish.value,
-				doer2DidFinish.value,
-				doer3DidFinish.value,
-			]
-		}
-
-		let clock = TestClock()
-
 		withDependencies {
 			$0.continuousClock = clock
 		} operation: {
@@ -49,78 +77,26 @@ final class SynchronizedTaskTests: XCTestCase {
 			doer3.do(for: .seconds(3), id: 1, didFinish: doer3DidFinish)
 		}
 
-		var didFinishValues = await getDidFinishValues()
+		var didFinishValues = await allDidFinishValues
 		XCTAssert(didFinishValues.allSatisfy { !$0 })
 
 		await clock.advance(by: .seconds(1))
 
-		didFinishValues = await getDidFinishValues()
+		didFinishValues = await allDidFinishValues
 		XCTAssert(didFinishValues.allSatisfy { !$0 })
 
 		await clock.advance(by: .seconds(1))
 
-		didFinishValues = await getDidFinishValues()
+		didFinishValues = await allDidFinishValues
 		XCTAssert(didFinishValues.allSatisfy { !$0 })
 
 		await clock.advance(by: .seconds(1))
 
-		didFinishValues = await getDidFinishValues()
+		didFinishValues = await allDidFinishValues
 		XCTAssert(didFinishValues.allSatisfy { $0 })
 	}
 
 	func testAsyncCancellation() async throws {
-		@MainActor
-		final class Doer {
-			private var task: SynchronizedTask? = nil
-
-			func `do`(
-				for duration: Duration,
-				id: some Hashable,
-				didFinish: ActorIsolated<Bool>,
-				cancellationCount: ActorIsolated<Int>
-			) {
-				task?.cancel()
-				task = SynchronizedTask(id: id) { synchronize in
-					@Dependency(\.continuousClock) var clock
-					try await clock.sleep(for: duration) // simulates work happening
-					try await synchronize()
-					await didFinish.setValue(true)
-				} onCancel: {
-					await cancellationCount.withValue { $0 += 1 }
-				}
-			}
-		}
-
-		let doer1 = Doer()
-		let doer2 = Doer()
-		let doer3 = Doer()
-
-		let doer1DidFinish = ActorIsolated<Bool>(false)
-		let doer2DidFinish = ActorIsolated<Bool>(false)
-		let doer3DidFinish = ActorIsolated<Bool>(false)
-
-		let doer1CancellationCount = ActorIsolated<Int>(0)
-		let doer2CancellationCount = ActorIsolated<Int>(0)
-		let doer3CancellationCount = ActorIsolated<Int>(0)
-
-		func getDidFinishValues() async -> [Bool] {
-			await [
-				doer1DidFinish.value,
-				doer2DidFinish.value,
-				doer3DidFinish.value,
-			]
-		}
-
-		func getDidCancelValues() async -> [Int] {
-			await [
-				doer1CancellationCount.value,
-				doer2CancellationCount.value,
-				doer3CancellationCount.value,
-			]
-		}
-
-		let clock = TestClock()
-
 		withDependencies {
 			$0.continuousClock = clock
 		} operation: {
@@ -129,17 +105,17 @@ final class SynchronizedTaskTests: XCTestCase {
 			doer3.do(for: .seconds(3), id: 1, didFinish: doer3DidFinish, cancellationCount: doer3CancellationCount)
 		}
 
-		var didFinishValues = await getDidFinishValues()
+		var didFinishValues = await allDidFinishValues
 		XCTAssert(didFinishValues.allSatisfy { !$0 })
 
 		await clock.advance(by: .seconds(1))
 
-		didFinishValues = await getDidFinishValues()
+		didFinishValues = await allDidFinishValues
 		XCTAssert(didFinishValues.allSatisfy { !$0 })
 
 		await clock.advance(by: .seconds(1))
 
-		didFinishValues = await getDidFinishValues()
+		didFinishValues = await allDidFinishValues
 		XCTAssert(didFinishValues.allSatisfy { !$0 })
 
 		withDependencies {
@@ -150,66 +126,14 @@ final class SynchronizedTaskTests: XCTestCase {
 
 		await clock.run()
 
-		didFinishValues = await getDidFinishValues()
+		didFinishValues = await allDidFinishValues
 		XCTAssertEqual(didFinishValues, [true, false, false])
 
-		let cancellationCountValues = await getDidCancelValues()
+		let cancellationCountValues = await allCancellationCountValues
 		XCTAssertEqual(cancellationCountValues, [1, 1, 1])
 	}
 
 	func testImmediateCancellation() async throws {
-		@MainActor
-		final class Doer {
-			private var task: SynchronizedTask? = nil
-
-			func `do`(
-				for duration: Duration,
-				id: some Hashable,
-				didFinish: ActorIsolated<Bool>,
-				cancellationCount: ActorIsolated<Int>
-			) {
-				task?.cancel()
-				task = SynchronizedTask(id: id) { synchronize in
-					@Dependency(\.continuousClock) var clock
-					try await clock.sleep(for: duration) // simulates work happening
-					try await synchronize()
-					await didFinish.setValue(true)
-				} onCancel: {
-					await cancellationCount.withValue { $0 += 1 }
-				}
-			}
-		}
-
-		let doer1 = Doer()
-		let doer2 = Doer()
-		let doer3 = Doer()
-
-		let doer1DidFinish = ActorIsolated<Bool>(false)
-		let doer2DidFinish = ActorIsolated<Bool>(false)
-		let doer3DidFinish = ActorIsolated<Bool>(false)
-
-		let doer1CancellationCount = ActorIsolated<Int>(0)
-		let doer2CancellationCount = ActorIsolated<Int>(0)
-		let doer3CancellationCount = ActorIsolated<Int>(0)
-
-		func getDidFinishValues() async -> [Bool] {
-			await [
-				doer1DidFinish.value,
-				doer2DidFinish.value,
-				doer3DidFinish.value,
-			]
-		}
-
-		func getDidCancelValues() async -> [Int] {
-			await [
-				doer1CancellationCount.value,
-				doer2CancellationCount.value,
-				doer3CancellationCount.value,
-			]
-		}
-
-		let clock = TestClock()
-
 		withDependencies {
 			$0.continuousClock = clock
 		} operation: {
@@ -224,15 +148,15 @@ final class SynchronizedTaskTests: XCTestCase {
 			doer2.do(for: .seconds(1), id: 1, didFinish: doer2DidFinish, cancellationCount: doer1CancellationCount)
 		}
 
-		var didFinishValues = await getDidFinishValues()
+		var didFinishValues = await allDidFinishValues
 		XCTAssert(didFinishValues.allSatisfy { !$0 })
 
 		await clock.run()
 
-		didFinishValues = await getDidFinishValues()
+		didFinishValues = await allDidFinishValues
 		XCTAssertEqual(didFinishValues, [false, true, false])
 
-		let cancellationCountValues = await getDidCancelValues()
+		let cancellationCountValues = await allCancellationCountValues
 		XCTAssertEqual(cancellationCountValues, [1, 1, 1])
 	}
 }
