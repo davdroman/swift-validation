@@ -76,27 +76,17 @@ open class ValidationBase<Value, Error> {
 	private func _validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
 		state.phase = .validating
 
-		// We gotta make a copy this early on in case the value is changed
-		// later while validation is in progress.
-		let history = state.$rawValue
+		let operation: SynchronizedTaskOperation = { [weak self, history = state.$rawValue] synchronize in
+			guard let self else { return }
 
-		if let id {
-			Synchronizer.shared.start(id: id)
-		}
-
-		task?.cancel()
-		task = Task {
 			if let delay = mode.delay {
 				#if os(Linux)
 				@Dependency(\.continuousClock) var clock
 				#else
 				@Dependency(\.mainQueue) var clock
 				#endif
-				do {
-					try await clock.sleep(for: .seconds(delay))
-				} catch {
-					return
-				}
+				do { try await clock.sleep(for: .seconds(delay)) }
+				catch { return }
 			}
 
 			let errors = await rules.evaluate(history)
@@ -104,17 +94,21 @@ open class ValidationBase<Value, Error> {
 			// Unit test this:
 			// Group validation should be stopped if synchronizer is cancelled while
 			// validation is ongoing.
-			do {
-				try await Synchronizer.shared.finish(id: id)
-			} catch {
-				return
-			}
+			do { try await synchronize() }
+			catch { return }
 
 			if let errors = NonEmpty(rawValue: errors) {
 				state.phase = .invalid(errors)
 			} else {
 				state.phase = .valid(history.currentValue)
 			}
+		}
+
+		task?.cancel()
+		task = if let id {
+			SynchronizedTask(id: id, operation: operation)
+		} else {
+			Task { await operation({}) }
 		}
 	}
 

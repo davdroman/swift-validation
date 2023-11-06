@@ -3,24 +3,16 @@ import Dependencies
 import XCTest
 
 @MainActor
-final class SynchronizerTests: XCTestCase {
-	func test() async {
+final class SynchronizedTaskTests: XCTestCase {
+	func testHappyPath() async {
 		@MainActor
 		final class Doer {
-			let synchronizer: Synchronizer
-
-			init(synchronizer: Synchronizer) {
-				self.synchronizer = synchronizer
-			}
-
 			func `do`(for duration: Duration, id: some Hashable, didFinish: ActorIsolated<Bool>) {
-				synchronizer.start(id: id)
-
-				Task {
+				SynchronizedTask(id: id) { synchronize in
 					@Dependency(\.continuousClock) var clock
 					do {
-						try await clock.sleep(for: duration)
-						try await synchronizer.finish(id: id)
+						try await clock.sleep(for: duration) // simulates work happening
+						try await synchronize()
 						await didFinish.setValue(true)
 					} catch {
 						XCTFail(error.localizedDescription)
@@ -29,13 +21,11 @@ final class SynchronizerTests: XCTestCase {
 			}
 		}
 
-		let sut = Synchronizer()
-
-		let doer1 = Doer(synchronizer: sut)
-		let doer2 = Doer(synchronizer: sut)
-		let doer3 = Doer(synchronizer: sut)
-		let doer4 = Doer(synchronizer: sut)
-		let doer5 = Doer(synchronizer: sut)
+		let doer1 = Doer()
+		let doer2 = Doer()
+		let doer3 = Doer()
+		let doer4 = Doer()
+		let doer5 = Doer()
 
 		let doer1DidFinish = ActorIsolated<Bool>(false)
 		let doer2DidFinish = ActorIsolated<Bool>(false)
