@@ -24,7 +24,6 @@ struct SynchronizedTask {
 
 	private let path: SynchronizedTaskPool.Path
 	private let task: Task<Void, Never>
-	private var onCancel: (() async -> Void)?
 
 	@discardableResult
 	init(
@@ -34,7 +33,6 @@ struct SynchronizedTask {
 		onCancel: (() async -> Void)? = nil
 	) {
 		self.path = SynchronizedTaskPool.shared.prepare(id: id)
-		self.onCancel = onCancel
 		self.task = Task { [path] in
 			do {
 				try SynchronizedTaskPool.shared.start(path: path)
