@@ -9,7 +9,7 @@ open class ValidationBase<Value, Error> {
 	@_spi(package) open var state: ValidationState<Value, Error>
 	private let rules: ValidationRules<Value, Error>
 	private let mode: ValidationMode
-	private var task: Task<Void, Never>? = nil
+	private var task: AnyTask? = nil
 
 	public init(
 		wrappedValue rawValue: Value,
@@ -76,7 +76,7 @@ open class ValidationBase<Value, Error> {
 	private func _validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
 		state.phase = .validating
 
-		let operation: SynchronizedTaskOperation = { [weak self, history = state.$rawValue] synchronize in
+		let operation: SynchronizedTask.Operation = { [weak self, history = state.$rawValue] synchronize in
 			guard let self else { return }
 
 			if let delay = mode.delay {
@@ -107,9 +107,9 @@ open class ValidationBase<Value, Error> {
 		// I think this might need to be deferred to the next run loop in order
 		// for synchronizer to be able to catch up to the latest cancellation
 		task = if let id {
-			SynchronizedTask(id: id, operation: operation)
+			AnyTask(SynchronizedTask(id: id, operation: operation))
 		} else {
-			Task { try? await operation({}) }
+			AnyTask(Task { try? await operation({}) })
 		}
 	}
 
