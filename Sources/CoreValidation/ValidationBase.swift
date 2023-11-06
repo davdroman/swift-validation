@@ -91,8 +91,8 @@ open class ValidationBase<Value, Error> {
 			let errors = await rules.evaluate(history)
 
 			// TODO: unit test this
-			// Group validation should be stopped if synchronizer is cancelled while
-			// validation is ongoing.
+			// Group validation should be stopped if any one `synchronize()` is cancelled while
+			// other validations are ongoing.
 			try await synchronize()
 
 			if let errors = NonEmpty(rawValue: errors) {
@@ -103,9 +103,6 @@ open class ValidationBase<Value, Error> {
 		}
 
 		task?.cancel()
-		// TODO: write a unit test to verify this
-		// I think this might need to be deferred to the next run loop in order
-		// for synchronizer to be able to catch up to the latest cancellation
 		task = if let id {
 			AnyTask(SynchronizedTask(id: id, operation: operation))
 		} else {
