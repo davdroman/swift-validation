@@ -111,6 +111,7 @@ open class ValidationBase<Value, Error> {
 	}
 
 	// TODO: `reset`?
+	// TODO: should this be private?
 	public func clearErrors() {
 		if state.isInvalid {
 			state.phase = .idle
