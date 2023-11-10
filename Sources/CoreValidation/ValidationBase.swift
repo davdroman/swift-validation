@@ -74,10 +74,10 @@ open class ValidationBase<Value, Error> {
 	}
 
 	private func _validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
-		state.phase = .validating
-
 		let operation: SynchronizedTask.Operation = { [weak self, history = state.$rawValue] synchronize in
 			guard let self else { return }
+
+			state.phase = .validating
 
 			if let delay = mode.delay {
 				#if os(Linux)
