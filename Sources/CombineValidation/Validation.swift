@@ -12,19 +12,9 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 		}
 	}
 
-	public override var projectedValue: ValidationBase<Value, Error> {
-		get { self }
-		@available(*, unavailable)
-		set { fatalError() }
-	}
-
 	public override var wrappedValue: Value? {
-		get {
-			super.wrappedValue
-		}
-		set {
-			super.wrappedValue = newValue
-		}
+		get { super.wrappedValue }
+		set { super.wrappedValue = newValue }
 	}
 }
 
@@ -45,7 +35,7 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 struct ValidationPreview: View {
 	@ObservedObject
 	@Validation<String, String>({ $input in
-		if $input.isUnset { "Cannot be nil" }
+		if $input.isUnset { "Cannot be unset" }
 		if input.isEmpty { "Cannot be empty" }
 		if input.isBlank { "Cannot be blank" }
 	})
@@ -59,15 +49,15 @@ struct ValidationPreview: View {
 			)
 			.textFieldStyle(.roundedBorder)
 
-//			if let error = $name.errors?.first {
-//				Text(error)
-//					.foregroundColor(.red)
-//					.font(.footnote)
-//			} else {
-//				Text("All good!")
-//					.foregroundColor(.green)
-//					.font(.footnote)
-//			}
+			if let error = $name.projectedValue.errors?.first {
+				Text(error)
+					.foregroundColor(.red)
+					.font(.footnote)
+			} else {
+				Text("All good!")
+					.foregroundColor(.green)
+					.font(.footnote)
+			}
 		}
 		.padding()
 	}

@@ -57,6 +57,7 @@ open class ValidationBase<Value, Error> {
 
 	open var projectedValue: ValidationBase<Value, Error> {
 		get { self }
+		@available(*, unavailable)
 		set { fatalError() }
 	}
 
