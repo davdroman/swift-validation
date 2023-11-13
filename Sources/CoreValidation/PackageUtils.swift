@@ -1,7 +1,7 @@
 import Foundation
 
-extension StringProtocol {
-	package var isBlank: Bool {
+package extension StringProtocol {
+	var isBlank: Bool {
 		self.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 	}
 }
