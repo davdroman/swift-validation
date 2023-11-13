@@ -1,49 +1,29 @@
-import Combine
-import CoreValidation
+import SwiftUI
+@_spi(package) import CoreValidation
 
 public typealias CombineValidation<Value, Error> = Validation<Value, Error>
 
 @propertyWrapper
-@dynamicMemberLookup
+//@dynamicMemberLookup
 public final class Validation<Value, Error>: ValidationBase<Value, Error>, ObservableObject {
-	private(set) public override var rawValue: Value? {
+	@_spi(package) public override var state: ValidationState<Value, Error> {
 		willSet {
 			objectWillChange.send()
 		}
 	}
-//	public var state: Value?
-	private let rule: ValidationRule<Value, Error>
 
-	public init(
-		wrappedValue rawValue: Value? = nil,
-		rule: ValidationRule<Value, Error>
-	) {
-		self.rawValue = rawValue
-		self.rule = rule
+	public override var projectedValue: ValidationBase<Value, Error> {
+		get { self }
+		@available(*, unavailable)
+		set { fatalError() }
 	}
 
-	public convenience init(
-		wrappedValue rawValue: Value? = nil,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRuleHandler<Value, Error>
-	) {
-		self.init(
-			wrappedValue: rawValue,
-			rule: .init(handler: handler)
-		)
-	}
-
-//	public var projectedValue: Validation<Value, Error> {
-//		get { self }
-//		@available(*, unavailable)
-//		set { fatalError() }
-//	}
-
-	public var wrappedValue: Value? {
+	public override var wrappedValue: Value? {
 		get {
-			validated?.value
+			super.wrappedValue
 		}
 		set {
-			rawValue = newValue
+			super.wrappedValue = newValue
 		}
 	}
 }
@@ -62,4 +42,37 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 //	}
 //}
 
+struct ValidationPreview: View {
+	@ObservedObject
+	@Validation<String, String>({ $input in
+		if $input.isUnset { "Cannot be nil" }
+		if input.isEmpty { "Cannot be empty" }
+		if input.isBlank { "Cannot be blank" }
+	})
+	var name: String? = ""
 
+	var body: some View {
+		VStack(alignment: .leading) {
+			TextField(
+				"Name",
+				text: Binding(validating: $name)
+			)
+			.textFieldStyle(.roundedBorder)
+
+//			if let error = $name.errors?.first {
+//				Text(error)
+//					.foregroundColor(.red)
+//					.font(.footnote)
+//			} else {
+//				Text("All good!")
+//					.foregroundColor(.green)
+//					.font(.footnote)
+//			}
+		}
+		.padding()
+	}
+}
+
+#Preview {
+	ValidationPreview()
+}
