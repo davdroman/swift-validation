@@ -1,22 +1,12 @@
 import ConcurrencyExtras
 import Foundation
 
-@MainActor
-struct AnyTask {
-	private let _cancel: () -> Void
-
-	init(_ task: SynchronizedTask) {
-		self._cancel = task.cancel
-	}
-
-	init(_ task: Task<Void, Never>) {
-		self._cancel = task.cancel
-	}
-
-	func cancel() {
-		_cancel()
-	}
+protocol Cancellable {
+	func cancel()
 }
+
+extension Task: Cancellable {}
+extension SynchronizedTask: Cancellable {}
 
 @MainActor
 struct SynchronizedTask {

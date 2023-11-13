@@ -9,7 +9,7 @@ open class ValidationBase<Value, Error> {
 	@_spi(package) open var state: ValidationState<Value, Error>
 	private let rules: ValidationRules<Value, Error>
 	private let mode: ValidationMode
-	private var task: AnyTask? = nil
+	private var task: (any Cancellable)? = nil
 
 	public init(
 		wrappedValue rawValue: Value,
@@ -104,9 +104,9 @@ open class ValidationBase<Value, Error> {
 
 		task?.cancel()
 		task = if let id {
-			AnyTask(SynchronizedTask(id: id, operation: operation))
+			SynchronizedTask(id: id, operation: operation, onCancel: { self.state.phase = .idle })
 		} else {
-			AnyTask(Task { try? await operation({}) })
+			Task { try? await operation({}) }
 		}
 	}
 
