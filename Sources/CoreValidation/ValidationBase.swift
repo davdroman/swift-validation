@@ -55,7 +55,11 @@ open class ValidationBase<Value, Error> {
 		}
 	}
 
-	open var projectedValue: ValidationBase<Value, Error> {
+	public var projectedValue: ValidationBase<Value, Error> {
+		self
+	}
+
+	package var proxySelf: ValidationBase<Value, Error> {
 		get { self }
 		@available(*, unavailable)
 		set { fatalError() }
