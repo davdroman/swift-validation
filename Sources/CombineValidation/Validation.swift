@@ -17,20 +17,6 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 	}
 }
 
-//extension Validation: Sendable where Value: Sendable, Error: Sendable {}
-
-//extension Validation: Equatable where Value: Equatable {
-//	public static func == (lhs: Self, rhs: Self) -> Bool {
-//		lhs.rawValue == rhs.rawValue
-//	}
-//}
-
-//extension Validation: Hashable where Value: Hashable {
-//	public func hash(into hasher: inout Hasher) {
-//		hasher.combine(rawValue)
-//	}
-//}
-
 #Preview {
 	ValidationPreview()
 }
