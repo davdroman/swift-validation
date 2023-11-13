@@ -31,6 +31,10 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 //	}
 //}
 
+#Preview {
+	ValidationPreview()
+}
+
 struct ValidationPreview: View {
 	@ObservedObject
 	@Validation({ $input in
@@ -48,7 +52,7 @@ struct ValidationPreview: View {
 			)
 			.textFieldStyle(.roundedBorder)
 
-			if let error = $name.projectedValue.errors?.first {
+			if let error = $name.errors?.first {
 				Text(error)
 					.foregroundColor(.red)
 					.font(.footnote)
@@ -60,8 +64,4 @@ struct ValidationPreview: View {
 		}
 		.padding()
 	}
-}
-
-#Preview {
-	ValidationPreview()
 }
