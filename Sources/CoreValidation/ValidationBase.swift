@@ -108,9 +108,9 @@ open class ValidationBase<Value, Error> {
 
 		task?.cancel()
 		task = if let id {
-			SynchronizedTask(id: id, operation: operation, onCancel: { self.state.phase = .idle })
+			SynchronizedTask(id: id, operation: operation, onCancel: { /*self.state.phase = .idle*/ })
 		} else {
-			Task { try? await operation({}) }
+			Task { try? await operation({ try Task.checkCancellation() }) }
 		}
 	}
 

@@ -24,6 +24,13 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 struct ValidationPreview: View {
 	@ObservedObject
 	@Validation({ $name in
+		let _ = await {
+			do {
+				try await Task.sleep(nanoseconds: NSEC_PER_SEC)
+			} catch {
+				print(error)
+			}
+		}()
 		if $name.isUnset { "Cannot be unset" }
 		if name.isEmpty { "Cannot be empty" }
 		if name.isBlank { "Cannot be blank" }
@@ -38,15 +45,21 @@ struct ValidationPreview: View {
 			)
 			.textFieldStyle(.roundedBorder)
 
-			if let error = $name.errors?.first {
-				Text(error)
-					.foregroundColor(.red)
-					.font(.footnote)
-			} else {
-				Text("All good!")
-					.foregroundColor(.green)
-					.font(.footnote)
+			Group {
+				switch $name.phase {
+				case .idle:
+					EmptyView()
+				case .validating:
+					Text("Processing...").foregroundColor(.gray)
+				case .invalid(let errors):
+					if let error = errors.first {
+						Text(error).foregroundColor(.red)
+					}
+				case .valid:
+					Text("All good!").foregroundColor(.green)
+				}
 			}
+			.font(.footnote)
 		}
 		.padding()
 	}

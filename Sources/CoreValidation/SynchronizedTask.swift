@@ -20,7 +20,7 @@ struct SynchronizedTask {
 		id: some Hashable,
 		priority: TaskPriority? = nil,
 		operation: @escaping Operation,
-		onCancel: (() async -> Void)? = nil
+		onCancel: (() async -> Void)? = nil // TODO: is this needed for handling cancellation of manual group validation?
 	) {
 		self.path = SynchronizedTaskPool.shared.prepare(id: id)
 		self.task = Task { [path] in
