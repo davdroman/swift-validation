@@ -37,12 +37,12 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 
 struct ValidationPreview: View {
 	@ObservedObject
-	@Validation({ $input in
-		if $input.isUnset { "Cannot be unset" }
-		if input.isEmpty { "Cannot be empty" }
-		if input.isBlank { "Cannot be blank" }
+	@Validation({ $name in
+		if $name.isUnset { "Cannot be unset" }
+		if name.isEmpty { "Cannot be empty" }
+		if name.isBlank { "Cannot be blank" }
 	})
-	var name: String? = ""
+	var name = ""
 
 	var body: some View {
 		VStack(alignment: .leading) {
