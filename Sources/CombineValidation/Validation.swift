@@ -26,7 +26,7 @@ struct ValidationPreview: View {
 	@Validation({ $name in
 		let _ = await {
 			do {
-				try await Task.sleep(nanoseconds: NSEC_PER_SEC)
+				try await Task.sleep(nanoseconds: NSEC_PER_SEC/2)
 			} catch {
 				print(error)
 			}
@@ -50,7 +50,7 @@ struct ValidationPreview: View {
 				case .idle:
 					EmptyView()
 				case .validating:
-					Text("Processing...").foregroundColor(.gray)
+					Text("Validating...").foregroundColor(.gray)
 				case .invalid(let errors):
 					if let error = errors.first {
 						Text(error).foregroundColor(.red)
