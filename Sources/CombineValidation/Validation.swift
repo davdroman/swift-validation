@@ -1,10 +1,9 @@
-import SwiftUI
 @_spi(package) import CoreValidation
+import SwiftUI
 
 public typealias CombineValidation<Value, Error> = Validation<Value, Error>
 
 @propertyWrapper
-//@dynamicMemberLookup
 public final class Validation<Value, Error>: ValidationBase<Value, Error>, ObservableObject {
 	@_spi(package) public override var state: ValidationState<Value, Error> {
 		willSet {
