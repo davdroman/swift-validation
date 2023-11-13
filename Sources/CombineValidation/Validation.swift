@@ -33,7 +33,7 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 
 struct ValidationPreview: View {
 	@ObservedObject
-	@Validation<String, String>({ $input in
+	@Validation({ $input in
 		if $input.isUnset { "Cannot be unset" }
 		if input.isEmpty { "Cannot be empty" }
 		if input.isBlank { "Cannot be blank" }
