@@ -40,19 +40,23 @@ let package = Package(
 
 		.testTarget(name: "CoreValidationTests", dependencies: [
 			"CoreValidation",
-		])
+		]),
 	]
 )
 
-//#if !os(Linux)
-//package.targets.append(contentsOf: [
-//	.target(
-//		name: "CombineValidation",
-//		dependencies: [
-////			"CoreValidation",
-//			.product(name: "Republished", package: "Republished"),
-//		]
-//	),
+#if !os(Linux)
+package.products.append(contentsOf: [
+	.library(name: "CombineValidation", targets: ["CombineValidation"]),
+])
+
+package.targets.append(contentsOf: [
+	.target(
+		name: "CombineValidation",
+		dependencies: [
+			"CoreValidation",
+			.product(name: "Republished", package: "Republished"),
+		]
+	),
 //	.target(
 //		name: "ComposableValidation",
 //		dependencies: [
@@ -60,12 +64,12 @@ let package = Package(
 ////			"CoreValidation",
 //		]
 //	),
-//])
-//#endif
+])
+#endif
 
 package.dependencies += [
 	.package(url: "https://github.com/davdroman/swift-builders", from: "0.6.0"),
-	.package(url: "https://github.com/pointfreeco/swift-case-paths", branch: "case-key-paths"),
+	.package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.1.0"),
 //	.package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
 	.package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
 	.package(url: "https://github.com/pointfreeco/swift-nonempty", from: "0.4.0"),
