@@ -44,11 +44,8 @@ struct ValidationPreview: View {
 	@State
 	@Validation({ $name in
 		let _ = await {
-			do {
-				try await Task.sleep(nanoseconds: NSEC_PER_SEC/2)
-			} catch {
-				print(error)
-			}
+			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
+			catch { print(error) }
 		}()
 		if $name.isUnset { "Cannot be unset" }
 		if name.isEmpty { "Cannot be empty" }
