@@ -6,7 +6,10 @@ extension Binding {
 	public init<Error>(
 		validating validation: ObservedObject<Validation<Value, Error>>.Wrapper
 	) {
-		self.init(validating: validation.proxySelf)
+		self.init(
+			get: { validation.proxySelf.rawValue },
+			set: { validation.wrappedValue.wrappedValue = $0 }
+		)
 	}
 }
 

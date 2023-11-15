@@ -1,35 +1,17 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-extension Binding {
-	@MainActor
-	public init<Error>(
-		validating validation: Binding<ValidationBase<Value, Error>>
-	) {
-		self.init(
-			get: { validation.wrappedValue.rawValue },
-			set: { validation.wrappedValue.wrappedValue = $0 }
-		)
-	}
-
-//	public init<Wrapped, Error>(
-//		validating validation: Binding<ValidationBase<Wrapped, Error>>
-//	) where Value == Wrapped? {
+//extension Binding {
+//	@MainActor
+//	public init<Error>(
+//		validating validation: Binding<ValidationBase<Value, Error>>
+//	) {
 //		self.init(
 //			get: { validation.wrappedValue.rawValue },
 //			set: { validation.wrappedValue.wrappedValue = $0 }
 //		)
 //	}
-}
-
-extension Binding {
-	@MainActor
-	public subscript<_Value, Error, T>(
-		dynamicMember keyPath: KeyPath<ValidationState<_Value, Error>, T?>
-	) -> T? where Value == ValidationBase<_Value, Error> {
-		wrappedValue.state[keyPath: keyPath]
-	}
-}
+//}
 
 //#if DEBUG
 //// TODO: use #BetterPreview macro

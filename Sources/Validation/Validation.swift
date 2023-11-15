@@ -13,41 +13,75 @@ public typealias SwiftValidation<Value, Error> = Validation<Value, Error>
 #endif
 public final class Validation<Value, Error>: ValidationBase<Value, Error> {
 	@_spi(package) public override var state: ValidationState<Value, Error> {
-		get { super.state }
-		set { super.state = newValue }
+		get {
+			access(keyPath: \.state)
+			return super.state
+		}
+		set {
+			withMutation(keyPath: \.state) {
+				super.state = newValue
+			}
+		}
 	}
 
 	public override var wrappedValue: Value? {
 		get { super.wrappedValue }
 		set { super.wrappedValue = newValue }
 	}
-
-//	public var projectedValue: Validation<Value, Error> {
-//		get { self }
-//		@available(*, unavailable) 
-//		set { fatalError() }
-//	}
-
-//	public var wrappedValue: Value? {
-//		get {
-//			validated?.value
-//		}
-//		set {
-//			rawValue = newValue
-//		}
-//	}
 }
 
-//extension Validation: Sendable where Value: Sendable, Error: Sendable {}
+#if canImport(SwiftUI)
+import SwiftUI
 
-//extension Validation: Equatable where Value: Equatable {
-//	public static func == (lhs: Self, rhs: Self) -> Bool {
-//		lhs.rawValue == rhs.rawValue
-//	}
-//}
+@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
+#Preview {
+	ValidationPreview()
+}
 
-//extension Validation: Hashable where Value: Hashable {
-//	public func hash(into hasher: inout Hasher) {
-//		hasher.combine(rawValue)
-//	}
-//}
+@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
+@MainActor
+struct ValidationPreview: View {
+	@State
+	@Validation({ $name in
+		let _ = await {
+			do {
+				try await Task.sleep(nanoseconds: NSEC_PER_SEC/2)
+			} catch {
+				print(error)
+			}
+		}()
+		if $name.isUnset { "Cannot be unset" }
+		if name.isEmpty { "Cannot be empty" }
+		if name.isBlank { "Cannot be blank" }
+	})
+	var name = ""
+
+	var body: some View {
+		VStack(alignment: .leading) {
+			TextField(
+				"Name",
+				text: Binding(validating: $name)
+			)
+			.textFieldStyle(.roundedBorder)
+
+			Group {
+				switch $name.phase {
+				case .idle:
+					EmptyView()
+				case .validating:
+					Text("Validating...").foregroundColor(.gray)
+				case .invalid(let errors):
+					if let error = errors.first {
+						Text(error).foregroundColor(.red)
+					}
+				case .valid:
+					Text("All good!").foregroundColor(.green)
+				}
+			}
+			.font(.footnote)
+		}
+		.padding()
+	}
+}
+
+#endif
