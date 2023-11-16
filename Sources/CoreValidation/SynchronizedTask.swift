@@ -104,21 +104,21 @@ fileprivate final class SynchronizedTaskPool {
 	var tasks: LockIsolated<[Path: TasksState]> = .init([:])
 
 	func prepare(id: some Hashable) -> Path {
-		seeds.withValue { seeds in
-			tasks.withValue {
-				let seed = seeds[id] ?? UUID()
-				if seeds[id] == nil {
-					seeds[id] = seed
-				}
-				let path = Path(id: id, seed: seed)
-
-				var state = $0[path] ?? .init()
-				state.prepare()
-				$0[path] = state
-
-				return path
+		let path = seeds.withValue { seeds in
+			let seed = seeds[id] ?? UUID()
+			if seeds[id] == nil {
+				seeds[id] = seed
 			}
+			return Path(id: id, seed: seed)
 		}
+
+		tasks.withValue {
+			var state = $0[path] ?? .init()
+			state.prepare()
+			$0[path] = state
+		}
+
+		return path
 	}
 
 	func start(path: Path) throws {
