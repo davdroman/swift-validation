@@ -41,8 +41,7 @@ import SwiftUI
 @available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
 @MainActor
 struct ValidationPreview: View {
-	@State
-	@Validation({ $name in
+	@ValidationState({ $name in
 		let _ = await {
 			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
 			catch { print(error) }
