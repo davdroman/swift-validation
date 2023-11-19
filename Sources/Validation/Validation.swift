@@ -4,7 +4,7 @@ import Observation
 #endif
 
 @available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
-public typealias SwiftValidation<Value, Error> = Validation<Value, Error>
+public typealias ObservableValidation<Value, Error> = Validation<Value, Error>
 
 @available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
 @propertyWrapper
