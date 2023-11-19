@@ -59,12 +59,6 @@ open class ValidationBase<Value, Error> {
 		self
 	}
 
-	package var proxySelf: ValidationBase<Value, Error> {
-		get { self }
-		@available(*, unavailable)
-		set { fatalError() }
-	}
-
 	private func validateIfNeeded() {
 		if mode.is(\.automatic) {
 			_validate()
