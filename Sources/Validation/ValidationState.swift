@@ -12,14 +12,14 @@ public typealias ObservableValidationState<Value, Error> = ValidationState<Value
 public struct ValidationState<Value, Error>: DynamicProperty {
 	@State
 	@Validation<Value, Error>
-	var state: Value?
+	var value: Value?
 
 	public init(
 		wrappedValue rawValue: Value,
 		of rules: ValidationRules<Value, Error>,
 		mode: ValidationMode = .automatic
 	) {
-		self._state = State(
+		self._value = State(
 			initialValue: Validation(
 				wrappedValue: rawValue,
 				of: rules,
@@ -33,7 +33,7 @@ public struct ValidationState<Value, Error>: DynamicProperty {
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) {
-		self._state = State(
+		self._value = State(
 			initialValue: Validation(
 				wrappedValue: rawValue,
 				mode: mode,
@@ -43,11 +43,11 @@ public struct ValidationState<Value, Error>: DynamicProperty {
 	}
 
 	public var wrappedValue: Value? {
-		get { state }
-		set { state = newValue }
+		get { value }
+		set { value = newValue }
 	}
 
 	public var projectedValue: Validation<Value, Error> {
-		_state.wrappedValue
+		_value.wrappedValue
 	}
 }
