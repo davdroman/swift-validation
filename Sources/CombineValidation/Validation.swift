@@ -5,7 +5,7 @@ public typealias CombineValidation<Value, Error> = Validation<Value, Error>
 
 @propertyWrapper
 public final class Validation<Value, Error>: ValidationBase<Value, Error>, ObservableObject {
-	@_spi(package) public override var state: ValidationState<Value, Error> {
+	@_spi(package) public override var state: _ValidationState<Value, Error> {
 		willSet {
 			objectWillChange.send()
 		}

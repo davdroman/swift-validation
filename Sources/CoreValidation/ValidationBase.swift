@@ -6,7 +6,7 @@ import NonEmpty
 @propertyWrapper
 @dynamicMemberLookup
 open class ValidationBase<Value, Error> {
-	@_spi(package) open var state: ValidationState<Value, Error>
+	@_spi(package) open var state: _ValidationState<Value, Error>
 	private let rules: ValidationRules<Value, Error>
 	private let mode: ValidationMode
 	private var task: (any Cancellable)? = nil
@@ -126,7 +126,7 @@ open class ValidationBase<Value, Error> {
 //		validated?[keyPath: keyPath]
 //	}
 
-	public subscript<T>(dynamicMember keyPath: KeyPath<ValidationState<Value, Error>, T>) -> T {
+	public subscript<T>(dynamicMember keyPath: KeyPath<_ValidationState<Value, Error>, T>) -> T {
 		state[keyPath: keyPath]
 	}
 }

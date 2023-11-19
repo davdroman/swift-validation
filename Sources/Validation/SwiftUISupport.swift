@@ -19,7 +19,7 @@ extension Binding {
 extension Binding {
 	@MainActor
 	public subscript<_Value, Error, T>(
-		dynamicMember keyPath: KeyPath<ValidationState<_Value, Error>, T>
+		dynamicMember keyPath: KeyPath<_ValidationState<_Value, Error>, T>
 	) -> T where Value == Validation<_Value, Error> {
 		wrappedValue.state[keyPath: keyPath]
 	}

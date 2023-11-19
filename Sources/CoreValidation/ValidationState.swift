@@ -1,5 +1,5 @@
 @dynamicMemberLookup
-public struct ValidationState<Value, Error> {
+public struct _ValidationState<Value, Error> {
 	@History
 	public internal(set) var rawValue: Value
 	public internal(set) var phase: ValidationPhase<Value, Error>
@@ -9,5 +9,5 @@ public struct ValidationState<Value, Error> {
 	}
 }
 
-extension ValidationState: Equatable where Value: Equatable, Error: Equatable {}
-extension ValidationState: Hashable where Value: Hashable, Error: Hashable {}
+extension _ValidationState: Equatable where Value: Equatable, Error: Equatable {}
+extension _ValidationState: Hashable where Value: Hashable, Error: Hashable {}

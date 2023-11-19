@@ -12,7 +12,7 @@ public typealias SwiftValidation<Value, Error> = Validation<Value, Error>
 @Observable
 #endif
 public final class Validation<Value, Error>: ValidationBase<Value, Error> {
-	@_spi(package) public override var state: ValidationState<Value, Error> {
+	@_spi(package) public override var state: _ValidationState<Value, Error> {
 		get {
 			access(keyPath: \.state)
 			return super.state
