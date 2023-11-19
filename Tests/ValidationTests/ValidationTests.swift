@@ -18,13 +18,6 @@
 //		})
 //		var input: String? = nil
 //
-//		$input.validate()
-//
-//		@TaskLocal enclosingInstance: Any?
-//		@Get(\Self.name) var name // reads from $enclosingInstance
-//		@Property(\Self.name) var name // reads from $enclosingInstance
-//		@Get(\Self.name) var name // reads from $enclosingInstance
-//
 //		XCTAssertNil(input)
 //		XCTAssertEqual($input.errors, NonEmptyArray("Input cannot be nil"))
 //

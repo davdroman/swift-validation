@@ -71,9 +71,15 @@ open class ValidationBase<Value, Error> {
 		}
 	}
 
-	public func validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
+	public func validate() {
 		if mode.is(\.manual) {
 			_validate()
+		}
+	}
+
+	public func validate(id: some Hashable) {
+		if mode.is(\.manual) {
+			_validate(id: id)
 		}
 	}
 
