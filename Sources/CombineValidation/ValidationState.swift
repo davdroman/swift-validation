@@ -15,7 +15,7 @@ public struct ValidationState<Value, Error>: DynamicProperty {
 		of rules: ValidationRules<Value, Error>,
 		mode: ValidationMode = .automatic
 	) {
-		self._value = ObservedObject(
+		self._value = .init(
 			initialValue: Validation(
 				wrappedValue: rawValue,
 				of: rules,
@@ -29,7 +29,7 @@ public struct ValidationState<Value, Error>: DynamicProperty {
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) {
-		self._value = ObservedObject(
+		self._value = .init(
 			initialValue: Validation(
 				wrappedValue: rawValue,
 				mode: mode,
