@@ -1,17 +1,17 @@
 #if canImport(SwiftUI)
 import SwiftUI
 
-//extension Binding {
-//	@MainActor
-//	public init<Error>(
-//		validating validation: Binding<ValidationBase<Value, Error>>
-//	) {
-//		self.init(
-//			get: { validation.wrappedValue.rawValue },
-//			set: { validation.wrappedValue.wrappedValue = $0 }
-//		)
-//	}
-//}
+extension Binding {
+	@MainActor
+	public init<Error>(
+		validating validation: ValidationBase<Value, Error>
+	) {
+		self.init(
+			get: { validation.rawValue },
+			set: { validation.wrappedValue = $0 }
+		)
+	}
+}
 
 //#if DEBUG
 //// TODO: use #BetterPreview macro

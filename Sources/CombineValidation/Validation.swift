@@ -22,8 +22,7 @@ public final class Validation<Value, Error>: ValidationBase<Value, Error>, Obser
 }
 
 struct ValidationPreview: View {
-	@ObservedObject
-	@Validation({ $name in
+	@ValidationState({ $name in
 		let _ = await {
 			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
 			catch { print(error) }
