@@ -10,30 +10,12 @@
       }
     },
     {
-      "identity" : "republished",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/adam-zethraeus/Republished",
-      "state" : {
-        "revision" : "1464a43a09b22b6ca23546a212b11e6b9fbca4fb",
-        "version" : "1.2.0"
-      }
-    },
-    {
       "identity" : "swift-builders",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/davdroman/swift-builders",
       "state" : {
         "revision" : "c2f1dc3ac3596732359926a5ef5e3ba7009aac21",
         "version" : "0.6.0"
-      }
-    },
-    {
-      "identity" : "swift-case-paths",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/pointfreeco/swift-case-paths",
-      "state" : {
-        "revision" : "40773cbaf8d71ed5357f297b1ba4073f5b24faaa",
-        "version" : "1.1.0"
       }
     },
     {
@@ -75,19 +57,10 @@
     {
       "identity" : "swift-syntax",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-syntax.git",
+      "location" : "https://github.com/apple/swift-syntax",
       "state" : {
-        "revision" : "6ad4ea24b01559dde0773e3d091f1b9e36175036",
-        "version" : "509.0.2"
-      }
-    },
-    {
-      "identity" : "viewinspector",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nalexn/ViewInspector",
-      "state" : {
-        "revision" : "07c090d73e0169c342a4ed46e9010be2781eca1e",
-        "version" : "0.9.8"
+        "revision" : "64889f0c732f210a935a0ad7cda38f77f876262d",
+        "version" : "509.1.1"
       }
     },
     {
@@ -95,8 +68,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
       "state" : {
-        "revision" : "23cbf2294e350076ea4dbd7d5d047c1e76b03631",
-        "version" : "1.0.2"
+        "revision" : "31073495cae9caf243c440eac94b3ab067e3d7bc",
+        "version" : "1.8.0"
       }
     }
   ],

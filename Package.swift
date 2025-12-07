@@ -5,76 +5,34 @@ import PackageDescription
 let package = Package(
 	name: "swift-validation",
 	platforms: [
-		.iOS(.v13),
-		.macOS(.v10_15),
-		.tvOS(.v13),
-		.watchOS(.v6),
+		.iOS(.v17),
+		.macOS(.v14),
+		.tvOS(.v17),
+		.watchOS(.v10),
 	],
 	products: [
 		.library(name: "Validation", targets: ["Validation"]),
 	],
 	targets: [
 		.target(
-			name: "CoreValidation",
+			name: "Validation",
 			dependencies: [
 				.product(name: "Builders", package: "swift-builders"),
-				.product(name: "CasePaths", package: "swift-case-paths"),
 				.product(name: "Dependencies", package: "swift-dependencies"),
 				.product(name: "NonEmpty", package: "swift-nonempty"),
 			]
 		),
-		.target(
-			name: "Validation",
-			dependencies: [
-				"CoreValidation",
-			]
-		),
 		.testTarget(name: "ValidationTests", dependencies: [
 			"Validation",
-			.product(
-				name: "ViewInspector",
-				package: "ViewInspector",
-				condition: .when(platforms: [.iOS, .macOS, .tvOS, .watchOS])
-			),
-		]),
-
-		.testTarget(name: "CoreValidationTests", dependencies: [
-			"CoreValidation",
 		]),
 	]
 )
 
-#if !os(Linux)
-package.products.append(contentsOf: [
-	.library(name: "CombineValidation", targets: ["CombineValidation"]),
-])
-
-package.targets.append(contentsOf: [
-	.target(
-		name: "CombineValidation",
-		dependencies: [
-			"CoreValidation",
-			.product(name: "Republished", package: "Republished"),
-		]
-	),
-//	.target(
-//		name: "ComposableValidation",
-//		dependencies: [
-//			.product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-////			"CoreValidation",
-//		]
-//	),
-])
-#endif
-
 package.dependencies += [
 	.package(url: "https://github.com/davdroman/swift-builders", from: "0.6.0"),
-	.package(url: "https://github.com/pointfreeco/swift-case-paths", from: "1.1.0"),
 //	.package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
 	.package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
 	.package(url: "https://github.com/pointfreeco/swift-nonempty", from: "0.4.0"),
-	.package(url: "https://github.com/adam-zethraeus/Republished", from: "1.2.0"),
-	.package(url: "https://github.com/nalexn/ViewInspector", from: "0.9.8"),
 ]
 
 //for target in package.targets where target.type != .system {

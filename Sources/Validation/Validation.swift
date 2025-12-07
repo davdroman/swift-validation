@@ -1,83 +1,143 @@
-@_spi(package) import CoreValidation
-#if canImport(Observation)
+import Builders
+import Dependencies
+import NonEmpty
 import Observation
-#endif
 
-@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
-public typealias ObservableValidation<Value, Error> = Validation<Value, Error>
-
-@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
+@MainActor
 @propertyWrapper
-#if canImport(Observation)
 @Observable
-#endif
-public final class Validation<Value, Error>: ValidationBase<Value, Error> {
-	@_spi(package) public override var state: _ValidationState<Value, Error> {
+@dynamicMemberLookup
+public final class Validation<Value, Error> {
+	@ObservationIgnored
+	private let rules: ValidationRules<Value, Error>
+	@ObservationIgnored
+	private let mode: ValidationMode
+	@ObservationIgnored
+	private var task: (any Cancellable)?
+	public private(set) var state: _ValidationState<Value, Error>
+
+	public init(
+		wrappedValue rawValue: Value,
+		of rules: ValidationRules<Value, Error>,
+		mode: ValidationMode = .automatic
+	) {
+		self.state = .init(rawValue: rawValue, phase: .idle)
+		self.rules = rules
+		self.mode = mode
+
+		self.validateIfNeeded()
+	}
+
+	public convenience init(
+		wrappedValue rawValue: Value,
+		mode: ValidationMode = .automatic,
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
+	) {
+		self.init(
+			wrappedValue: rawValue,
+			of: ValidationRules(handler: handler),
+			mode: mode
+		)
+	}
+
+	public var wrappedValue: Value? {
 		get {
-			access(keyPath: \.state)
-			return super.state
+			state.value
 		}
 		set {
-			withMutation(keyPath: \.state) {
-				super.state = newValue
+			guard let newValue else { return }
+
+			let oldValue = state.rawValue
+			let hasValueChanged = !equals(oldValue, newValue)
+
+			state.rawValue = newValue
+
+			if hasValueChanged {
+				clearErrors()
 			}
+
+			validateIfNeeded()
 		}
 	}
 
-	public override var wrappedValue: Value? {
-		get { super.wrappedValue }
-		set { super.wrappedValue = newValue }
+	public var projectedValue: Validation<Value, Error> {
+		self
 	}
-}
 
-#if canImport(SwiftUI)
-import SwiftUI
-
-@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
-#Preview {
-	ValidationPreview()
-}
-
-@available(iOS 17, macOS 14, tvOS 17, watchOS 9, *)
-@MainActor
-struct ValidationPreview: View {
-	@ValidationState({ $name in
-		let _ = await {
-			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
-			catch { print(error) }
-		}()
-		if $name.isUnset { "Cannot be unset" }
-		if name.isEmpty { "Cannot be empty" }
-		if name.isBlank { "Cannot be blank" }
-	})
-	var name = ""
-
-	var body: some View {
-		VStack(alignment: .leading) {
-			TextField(
-				"Name",
-				text: Binding(validating: $name)
-			)
-			.textFieldStyle(.roundedBorder)
-
-			Group {
-				switch $name.phase {
-				case .idle:
-					EmptyView()
-				case .validating:
-					Text("Validating...").foregroundColor(.gray)
-				case .invalid(let errors):
-					if let error = errors.first {
-						Text(error).foregroundColor(.red)
-					}
-				case .valid:
-					Text("All good!").foregroundColor(.green)
-				}
-			}
-			.font(.footnote)
+	private func validateIfNeeded() {
+		if mode.isAutomatic {
+			_validate()
 		}
-		.padding()
+	}
+
+	public func validate() {
+		if mode.isManual {
+			_validate()
+		}
+	}
+
+	public func validate(id: some Hashable) {
+		if mode.isManual {
+			_validate(id: id)
+		}
+	}
+
+	private func _validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
+		let operation: SynchronizedTask.Operation = { [weak self, history = state.$rawValue] synchronize in
+			guard let self else { return }
+
+			state.phase = .validating
+
+			if let delay = mode.delay {
+				#if os(Linux)
+				@Dependency(\.continuousClock) var clock
+				#else
+				@Dependency(\.mainQueue) var clock
+				#endif
+				try await clock.sleep(for: .seconds(delay))
+			}
+
+			let errors = await rules.evaluate(history)
+
+			// TODO: unit test this
+			// Group validation should be stopped if any one `synchronize()` is cancelled while
+			// other validations are ongoing.
+			try await synchronize()
+
+			if let errors = NonEmpty(rawValue: errors) {
+				state.phase = .invalid(errors)
+			} else {
+				state.phase = .valid(history.currentValue)
+			}
+		}
+
+		task?.cancel()
+		task = if let id {
+			SynchronizedTask(id: id, operation: operation, onCancel: { /*self.state.phase = .idle*/ })
+		} else {
+			Task { try? await operation({ try Task.checkCancellation() }) }
+		}
+	}
+
+	public func clearErrors() {
+		if state.isInvalid {
+			state.phase = .idle
+		}
+	}
+
+	public subscript<T>(dynamicMember keyPath: KeyPath<_ValidationState<Value, Error>, T>) -> T {
+		state[keyPath: keyPath]
 	}
 }
 
-#endif
+// https://forums.swift.org/t/why-cant-existential-types-be-compared/59118/3
+fileprivate func equals(_ lhs: Any, _ rhs: Any) -> Bool {
+	func open<A: Equatable>(_ lhs: A, _ rhs: Any) -> Bool {
+		lhs == (rhs as? A)
+	}
+
+	guard let lhs = lhs as? any Equatable
+	else { return false }
+
+	return open(lhs, rhs)
+}

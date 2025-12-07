@@ -1,28 +1,15 @@
-@_spi(package) import CoreValidation
+public typealias ObservableValidation<Value, Error> = Validation<Value, Error>
+
+#if canImport(SwiftUI)
 import SwiftUI
-
-public typealias CombineValidation<Value, Error> = Validation<Value, Error>
-
-@propertyWrapper
-public final class Validation<Value, Error>: ValidationBase<Value, Error>, ObservableObject {
-	@_spi(package) public override var state: _ValidationState<Value, Error> {
-		willSet {
-			objectWillChange.send()
-		}
-	}
-
-	public override var wrappedValue: Value? {
-		get { super.wrappedValue }
-		set { super.wrappedValue = newValue }
-	}
-}
 
 #Preview {
 	ValidationPreview()
 }
 
+@MainActor
 struct ValidationPreview: View {
-	@ValidationState({ $name in
+	@Validation({ $name in
 		let _ = await {
 			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
 			catch { print(error) }
@@ -60,3 +47,5 @@ struct ValidationPreview: View {
 		.padding()
 	}
 }
+
+#endif

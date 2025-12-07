@@ -1,4 +1,4 @@
-@testable import CoreValidation
+@testable import Validation
 import NonEmpty
 import XCTest
 

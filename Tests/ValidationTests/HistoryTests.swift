@@ -1,4 +1,4 @@
-import CoreValidation
+import Validation
 import XCTest
 
 final class HistoryTests: XCTestCase {

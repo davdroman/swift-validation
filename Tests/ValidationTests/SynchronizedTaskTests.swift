@@ -1,8 +1,7 @@
-@testable import CoreValidation
+@testable import Validation
 import Dependencies
 import XCTest
 
-@available(iOS 16, macOS 13, tvOS 13, watchOS 6, *)
 @MainActor
 final class SynchronizedTaskTests: XCTestCase {
 	@MainActor

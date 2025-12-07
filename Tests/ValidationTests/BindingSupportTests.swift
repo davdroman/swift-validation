@@ -6,7 +6,7 @@
 //
 //final class BindingSupportTests: XCTestCase {
 //	func testBindingConversion() throws {
-//		var validation = ValidationBase { (input: String?) in
+//		var validation = Validation { (input: String?) in
 //			switch input {
 //			case nil: "Cannot be nil"
 //			case let input?:

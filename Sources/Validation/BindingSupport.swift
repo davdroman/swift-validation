@@ -4,7 +4,7 @@ import SwiftUI
 extension Binding {
 	@MainActor
 	public init<Error>(
-		validating validation: ValidationBase<Value, Error>
+		validating validation: Validation<Value, Error>
 	) {
 		self.init(
 			get: { validation.rawValue },
