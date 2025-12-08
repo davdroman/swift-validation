@@ -1,12 +1,12 @@
-public import Foundation
+import Foundation
 
 public enum ValidationMode: Sendable {
-	case automatic(delay: TimeInterval?)
+	case automatic(delay: Duration?)
 	case manual
 
 	public static var automatic: Self { .automatic(delay: .none) }
 
-	var delay: TimeInterval? {
+	var delay: Duration? {
 		if case let .automatic(delay) = self {
 			return delay
 		}

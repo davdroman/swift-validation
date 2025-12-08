@@ -126,7 +126,7 @@ public final class Validation<Value: Sendable, Error: Sendable> {
 			if let delay = mode.delay {
 				@Dependency(\.continuousClock) var clock
 				do {
-					try await clock.sleep(for: .seconds(delay))
+					try await clock.sleep(for: delay)
 				} catch {
 					return // cancelled
 				}
