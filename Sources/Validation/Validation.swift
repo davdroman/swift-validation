@@ -1,7 +1,7 @@
 import Builders
 import Dependencies
 import NonEmpty
-import Observation
+public import Observation
 
 @MainActor
 @propertyWrapper
@@ -12,8 +12,8 @@ public final class Validation<Value, Error> {
 	private let rules: ValidationRules<Value, Error>
 	@ObservationIgnored
 	private let mode: ValidationMode
-	@ObservationIgnored
-	private var task: (any Cancellable)?
+//	@ObservationIgnored
+//	private var task: (any Cancellable)?
 	public private(set) var state: _ValidationState<Value, Error>
 
 	public init(
@@ -25,7 +25,7 @@ public final class Validation<Value, Error> {
 		self.rules = rules
 		self.mode = mode
 
-		self.validateIfNeeded()
+//		self.validateIfNeeded()
 	}
 
 	public convenience init(
@@ -56,7 +56,7 @@ public final class Validation<Value, Error> {
 				clearErrors()
 			}
 
-			validateIfNeeded()
+//			validateIfNeeded()
 		}
 	}
 
@@ -64,60 +64,60 @@ public final class Validation<Value, Error> {
 		self
 	}
 
-	private func validateIfNeeded() {
-		if mode.isAutomatic {
-			_validate()
-		}
-	}
+//	private func validateIfNeeded() {
+//		if mode.isAutomatic {
+//			_validate()
+//		}
+//	}
+//
+//	public func validate() {
+//		if mode.isManual {
+//			_validate()
+//		}
+//	}
+//
+//	public func validate(id: some Hashable) {
+//		if mode.isManual {
+//			_validate(id: id)
+//		}
+//	}
 
-	public func validate() {
-		if mode.isManual {
-			_validate()
-		}
-	}
-
-	public func validate(id: some Hashable) {
-		if mode.isManual {
-			_validate(id: id)
-		}
-	}
-
-	private func _validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
-		let operation: SynchronizedTask.Operation = { [weak self, history = state.$rawValue] synchronize in
-			guard let self else { return }
-
-			state.phase = .validating
-
-			if let delay = mode.delay {
-				#if os(Linux)
-				@Dependency(\.continuousClock) var clock
-				#else
-				@Dependency(\.mainQueue) var clock
-				#endif
-				try await clock.sleep(for: .seconds(delay))
-			}
-
-			let errors = await rules.evaluate(history)
-
-			// TODO: unit test this
-			// Group validation should be stopped if any one `synchronize()` is cancelled while
-			// other validations are ongoing.
-			try await synchronize()
-
-			if let errors = NonEmpty(rawValue: errors) {
-				state.phase = .invalid(errors)
-			} else {
-				state.phase = .valid(history.currentValue)
-			}
-		}
-
-		task?.cancel()
-		task = if let id {
-			SynchronizedTask(id: id, operation: operation, onCancel: { /*self.state.phase = .idle*/ })
-		} else {
-			Task { try? await operation({ try Task.checkCancellation() }) }
-		}
-	}
+//	private func _validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
+//		let operation: SynchronizedTask.Operation = { [weak self, history = state.$rawValue] synchronize in
+//			guard let self else { return }
+//
+//			state.phase = .validating
+//
+//			if let delay = mode.delay {
+//				#if os(Linux)
+//				@Dependency(\.continuousClock) var clock
+//				#else
+//				@Dependency(\.mainQueue) var clock
+//				#endif
+//				try await clock.sleep(for: .seconds(delay))
+//			}
+//
+//			let errors = await rules.evaluate(history)
+//
+//			// TODO: unit test this
+//			// Group validation should be stopped if any one `synchronize()` is cancelled while
+//			// other validations are ongoing.
+//			try await synchronize()
+//
+//			if let errors = NonEmpty(rawValue: errors) {
+//				state.phase = .invalid(errors)
+//			} else {
+//				state.phase = .valid(history.currentValue)
+//			}
+//		}
+//
+//		task?.cancel()
+//		task = if let id {
+//			SynchronizedTask(id: id, operation: operation, onCancel: { /*self.state.phase = .idle*/ })
+//		} else {
+//			Task { try? await operation({ try Task.checkCancellation() }) }
+//		}
+//	}
 
 	public func clearErrors() {
 		if state.isInvalid {

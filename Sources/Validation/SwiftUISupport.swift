@@ -1,5 +1,5 @@
 #if canImport(SwiftUI)
-import SwiftUI
+public import SwiftUI
 
 public typealias LocalizedValidation<Value> = Validation<Value, LocalizedStringKey?>
 
@@ -64,6 +64,7 @@ extension Binding {
 	.padding()
 }
 
+@MainActor
 @Observable
 final class Inputs {
 	@ObservationIgnored

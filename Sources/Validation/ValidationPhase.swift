@@ -1,4 +1,4 @@
-import NonEmpty
+public import NonEmpty
 
 public enum ValidationPhase<Value, Error> {
 	case idle
