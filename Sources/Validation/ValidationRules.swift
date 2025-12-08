@@ -1,6 +1,6 @@
 public typealias ValidationRulesHandler<Value, Error> = @Sendable (ValidationInput<Value>) async -> [Error]
 
-public struct ValidationRules<Value, Error> {
+public struct ValidationRules<Value: Sendable, Error: Sendable>: Sendable {
 	private let handler: ValidationRulesHandler<Value, Error>
 
 	public init(

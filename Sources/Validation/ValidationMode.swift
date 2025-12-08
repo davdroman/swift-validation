@@ -1,6 +1,6 @@
 public import Foundation
 
-public enum ValidationMode {
+public enum ValidationMode: Sendable {
 	case automatic(delay: TimeInterval?)
 	case manual
 

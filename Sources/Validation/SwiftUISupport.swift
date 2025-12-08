@@ -1,7 +1,7 @@
 #if canImport(SwiftUI)
 public import SwiftUI
 
-public typealias LocalizedValidation<Value> = Validation<Value, LocalizedStringKey?>
+//public typealias LocalizedValidation<Value> = Validation<Value, LocalizedStringKey?>
 
 @MainActor
 extension Binding {

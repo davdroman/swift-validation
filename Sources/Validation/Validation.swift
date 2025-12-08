@@ -3,10 +3,10 @@ import NonEmpty
 public import Observation
 
 @MainActor
-@propertyWrapper
 @Observable
+@propertyWrapper
 @dynamicMemberLookup
-public final class Validation<Value, Error> {
+public final class Validation<Value: Sendable, Error: Sendable> {
 	@ObservationIgnored
 	private let rules: ValidationRules<Value, Error>
 	@ObservationIgnored
@@ -24,7 +24,7 @@ public final class Validation<Value, Error> {
 		self.rules = rules
 		self.mode = mode
 
-//		self.validateIfNeeded()
+		self.validateIfNeeded()
 	}
 
 	public convenience init(
@@ -51,11 +51,11 @@ public final class Validation<Value, Error> {
 
 			state.rawValue = newValue
 
-			if hasValueChanged {
-				clearErrors()
-			}
+//			if hasValueChanged {
+//				clearErrors()
+//			}
 
-//			validateIfNeeded()
+			validateIfNeeded()
 		}
 	}
 
@@ -63,18 +63,18 @@ public final class Validation<Value, Error> {
 		self
 	}
 
-//	private func validateIfNeeded() {
-//		if mode.isAutomatic {
-//			_validate()
-//		}
-//	}
-//
-//	public func validate() {
-//		if mode.isManual {
-//			_validate()
-//		}
-//	}
-//
+	private func validateIfNeeded() {
+		if mode.isAutomatic {
+			_validate()
+		}
+	}
+
+	public func validate() {
+		if mode.isManual {
+			_validate()
+		}
+	}
+
 //	public func validate(id: some Hashable) {
 //		if mode.isManual {
 //			_validate(id: id)
@@ -117,6 +117,30 @@ public final class Validation<Value, Error> {
 //			Task { try? await operation({ try Task.checkCancellation() }) }
 //		}
 //	}
+
+	private func _validate() {
+		Task<Void, Never> {
+//			guard let self else { return }
+			state.phase = .validating
+
+			if let delay = mode.delay {
+				@Dependency(\.continuousClock) var clock
+				do {
+					try await clock.sleep(for: .seconds(delay))
+				} catch {
+					return // cancelled
+				}
+			}
+
+			let errors = await rules.evaluate(state.$rawValue)
+
+			if let errors = NonEmpty(rawValue: errors) {
+				state.phase = .invalid(errors)
+			} else {
+				state.phase = .valid(state.rawValue)
+			}
+		}
+	}
 
 	public func clearErrors() {
 		if state.isInvalid {
