@@ -3,7 +3,7 @@ import XCTest
 
 final class HistoryTests: XCTestCase {
 	func test() {
-		@History var name = "Jim"
+		@ValidationInput var name = "Jim"
 
 		XCTAssertEqual(name, "Jim")
 		XCTAssertEqual($name.oldValues, [])

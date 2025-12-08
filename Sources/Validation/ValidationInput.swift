@@ -1,5 +1,5 @@
 @propertyWrapper
-public struct History<Value> {
+public struct ValidationInput<Value> {
 	public var oldValues: [Value] = []
 
 	public var currentValue: Value {
@@ -29,10 +29,11 @@ public struct History<Value> {
 	}
 }
 
-extension History: Equatable where Value: Equatable {}
-extension History: Hashable where Value: Hashable {}
+extension ValidationInput: Equatable where Value: Equatable {}
+extension ValidationInput: Hashable where Value: Hashable {}
+extension ValidationInput: Sendable where Value: Sendable {}
 
-extension History where Value: StringProtocol {
+extension ValidationInput where Value: StringProtocol {
 	public var isUnset: Bool {
 		wrappedValue.isEmpty && oldValues.filter { !$0.isEmpty }.isEmpty
 	}

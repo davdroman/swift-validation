@@ -1,6 +1,6 @@
 import Builders
 
-public typealias ValidationRulesHandler<Value, Error> = @Sendable (History<Value>) async -> [Error]
+public typealias ValidationRulesHandler<Value, Error> = @Sendable (ValidationInput<Value>) async -> [Error]
 
 public struct ValidationRules<Value, Error> {
 	private let handler: ValidationRulesHandler<Value, Error>
@@ -11,7 +11,7 @@ public struct ValidationRules<Value, Error> {
 		self.handler = handler
 	}
 
-	func evaluate(_ value: History<Value>) async -> [Error] {
+	func evaluate(_ value: ValidationInput<Value>) async -> [Error] {
 		await handler(value)
 	}
 }
