@@ -29,7 +29,7 @@ let package = Package(
 
 package.dependencies += [
 	.package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
-	.package(url: "https://github.com/pointfreeco/swift-nonempty", from: "0.4.0"),
+	.package(url: "https://github.com/pointfreeco/swift-nonempty", from: "0.5.0"),
 ]
 
 for target in package.targets {
