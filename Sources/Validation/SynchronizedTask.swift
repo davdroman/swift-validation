@@ -8,16 +8,15 @@ protocol Cancellable {
 extension Task: Cancellable {}
 extension SynchronizedTask: Cancellable {}
 
-@MainActor
 struct SynchronizedTask {
-	typealias Operation = (_ synchronize: @Sendable () async throws -> Void) async throws -> Void
+	typealias Operation = @Sendable (_ synchronize: @Sendable () async throws -> Void) async throws -> Void
 
 	private let path: SynchronizedTaskPool.Path
 	private let task: Task<Void, Never>
 
 	@discardableResult
 	init(
-		id: some Hashable,
+		id: some Hashable & Sendable,
 		priority: TaskPriority? = nil,
 		operation: @escaping Operation,
 		onCancel: (@Sendable () async -> Void)? = nil // TODO: is this needed for handling cancellation of manual group validation?
@@ -39,12 +38,11 @@ struct SynchronizedTask {
 	}
 }
 
-@MainActor
-fileprivate final class SynchronizedTaskPool {
+fileprivate final class SynchronizedTaskPool: Sendable {
 	static let shared = SynchronizedTaskPool()
 
 	struct Path: Hashable, Sendable {
-		let id: AnyHashable
+		let id: AnyHashableSendable
 		let seed: UUID
 	}
 
@@ -100,16 +98,17 @@ fileprivate final class SynchronizedTaskPool {
 		}
 	}
 
-	var seeds: LockIsolated<[AnyHashable: UUID]> = .init([:])
-	var tasks: LockIsolated<[Path: TasksState]> = .init([:])
+	let seeds: LockIsolated<[AnyHashableSendable: UUID]> = .init([:])
+	let tasks: LockIsolated<[Path: TasksState]> = .init([:])
 
-	func prepare(id: some Hashable) -> Path {
+	func prepare(id: some Hashable & Sendable) -> Path {
+		let identifier = AnyHashableSendable(id)
 		let path = seeds.withValue { seeds in
-			let seed = seeds[id] ?? UUID()
-			if seeds[id] == nil {
-				seeds[id] = seed
+			let seed = seeds[identifier] ?? UUID()
+			if seeds[identifier] == nil {
+				seeds[identifier] = seed
 			}
-			return Path(id: id, seed: seed)
+			return Path(id: identifier, seed: seed)
 		}
 
 		tasks.withValue {

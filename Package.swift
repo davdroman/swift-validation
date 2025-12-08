@@ -17,6 +17,7 @@ let package = Package(
 		.target(
 			name: "Validation",
 			dependencies: [
+				.product(name: "ConcurrencyExtras", package: "swift-concurrency-extras"),
 				.product(name: "Dependencies", package: "swift-dependencies"),
 				.product(name: "NonEmpty", package: "swift-nonempty"),
 			]
@@ -28,6 +29,7 @@ let package = Package(
 )
 
 package.dependencies += [
+	.package(url: "https://github.com/pointfreeco/swift-concurrency-extras", from: "1.0.0"),
 	.package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
 	.package(url: "https://github.com/pointfreeco/swift-nonempty", from: "0.5.0"),
 ]
