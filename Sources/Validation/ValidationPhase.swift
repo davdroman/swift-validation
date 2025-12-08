@@ -9,6 +9,7 @@ public enum ValidationPhase<Value, Error> {
 
 extension ValidationPhase: Equatable where Value: Equatable, Error: Equatable {}
 extension ValidationPhase: Hashable where Value: Hashable, Error: Hashable {}
+extension ValidationPhase: Sendable where Value: Sendable, Error: Sendable {}
 
 extension ValidationPhase {
 	public var isIdle: Bool {

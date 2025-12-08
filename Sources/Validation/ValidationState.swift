@@ -11,3 +11,4 @@ public struct _ValidationState<Value, Error> {
 
 extension _ValidationState: Equatable where Value: Equatable, Error: Equatable {}
 extension _ValidationState: Hashable where Value: Hashable, Error: Hashable {}
+extension _ValidationState: Sendable where Value: Sendable, Error: Sendable {}
