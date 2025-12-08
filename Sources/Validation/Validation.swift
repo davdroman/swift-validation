@@ -6,13 +6,13 @@ public import Observation
 @Observable
 @propertyWrapper
 @dynamicMemberLookup
-public final class Validation<Value: Sendable, Error: Sendable> {
+public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 	@ObservationIgnored
 	private let rules: ValidationRules<Value, Error>
 	@ObservationIgnored
 	private let mode: ValidationMode
-//	@ObservationIgnored
-//	private var task: (any Cancellable)?
+	@ObservationIgnored
+	private var task: (any Cancellable & Sendable)?
 	public private(set) var state: _ValidationState<Value, Error>
 
 	public init(
@@ -75,25 +75,21 @@ public final class Validation<Value: Sendable, Error: Sendable> {
 		}
 	}
 
-//	public func validate(id: some Hashable) {
+//	public func validate(id: some Hashable & Sendable) {
 //		if mode.isManual {
 //			_validate(id: id)
 //		}
 //	}
 
-//	private func _validate(id: (some Hashable)? = Optional<AnyHashable>.none) {
-//		let operation: SynchronizedTask.Operation = { [weak self, history = state.$rawValue] synchronize in
+//	private func _validate(id: (some Hashable & Sendable)? = AnyHashableSendable?.none) {
+//		let operation: SynchronizedTask.Operation = { @MainActor [weak self, history = state.$rawValue] synchronize in
 //			guard let self else { return }
 //
 //			state.phase = .validating
 //
 //			if let delay = mode.delay {
-//				#if os(Linux)
 //				@Dependency(\.continuousClock) var clock
-//				#else
-//				@Dependency(\.mainQueue) var clock
-//				#endif
-//				try await clock.sleep(for: .seconds(delay))
+//				try await clock.sleep(for: delay)
 //			}
 //
 //			let errors = await rules.evaluate(history)
@@ -119,8 +115,8 @@ public final class Validation<Value: Sendable, Error: Sendable> {
 //	}
 
 	private func _validate() {
-		Task<Void, Never> {
-//			guard let self else { return }
+		task?.cancel()
+		task = Task<Void, Never> {
 			state.phase = .validating
 
 			if let delay = mode.delay {
@@ -134,12 +130,22 @@ public final class Validation<Value: Sendable, Error: Sendable> {
 
 			let errors = await rules.evaluate(state.$rawValue)
 
+			do {
+				try Task.checkCancellation()
+			} catch {
+				return // cancelled
+			}
+
 			if let errors = NonEmpty(rawValue: errors) {
 				state.phase = .invalid(errors)
 			} else {
 				state.phase = .valid(state.rawValue)
 			}
 		}
+	}
+
+	deinit {
+		task?.cancel()
 	}
 
 	public func clearErrors() {
