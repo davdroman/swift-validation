@@ -50,7 +50,9 @@ extension Binding {
 //	) -> Binding<V?> {
 //		Binding<V?>(
 //			get: { self.wrappedValue[keyPath: keyPath].rawValue },
-//			set: { self.wrappedValue[keyPath: keyPath].wrappedValue = $0 }
+//			set: { newValue, transaction in
+//				self.transaction(transaction).wrappedValue[keyPath: keyPath].wrappedValue = newValue
+//			}
 //		)
 //	}
 //
@@ -59,7 +61,9 @@ extension Binding {
 //	) -> Binding<Wrapped> where Value == Wrapped? {
 //		Binding<Wrapped>(
 //			get: { self.wrappedValue ?? defaultValue },
-//			set: { self.wrappedValue = $0 }
+//			set: { newValue, transaction in
+//				self.transaction(transaction).wrappedValue = newValue
+//			}
 //		)
 //	}
 //
@@ -69,11 +73,11 @@ extension Binding {
 //	) -> Binding<Wrapped> where Value == Wrapped? {
 //		Binding<Wrapped>(
 //			get: { self.wrappedValue ?? defaultValue },
-//			set: {
-//				if nilOnDefault && $0 == defaultValue {
-//					self.wrappedValue = nil
+//			set: { newValue, transaction in
+//				if nilOnDefault && newValue == defaultValue {
+//					self.transaction(transaction).wrappedValue = nil
 //				} else {
-//					self.wrappedValue = $0
+//					self.transaction(transaction).wrappedValue = newValue
 //				}
 //			}
 //		)
@@ -183,6 +187,7 @@ final class Inputs {
 //			}
 //		}
 	}
+//	.animation(.smooth(duration: 0.1), value: inputs.$inputA.phase)
 	.padding()
 }
 #endif
