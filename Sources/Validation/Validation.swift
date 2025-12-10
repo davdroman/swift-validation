@@ -9,18 +9,22 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 	@ObservationIgnored
 	private let rules: ValidationRules<Value, Error>
 	@ObservationIgnored
+	private let defaultValue: Value?
+	@ObservationIgnored
 	private let mode: ValidationMode
 	@ObservationIgnored
 	private var task: Task<Void, Never>?
 	public private(set) var state: _ValidationState<Value, Error>
 
-	public init(
+	private init(
 		wrappedValue rawValue: Value? = nil,
 		of rules: ValidationRules<Value, Error>,
+		defaultValue: Value?,
 		mode: ValidationMode = .automatic
 	) {
 		self.state = .init(rawValue: rawValue, phase: .idle)
 		self.rules = rules
+		self.defaultValue = defaultValue
 		self.mode = mode
 
 		self.validateIfNeeded()
@@ -28,14 +32,36 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
+		of rules: ValidationRules<Value, Error>,
+		mode: ValidationMode = .automatic
+	) {
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, mode: mode)
+	}
+
+	public convenience init(
+		wrappedValue rawValue: Value? = nil,
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) {
-		self.init(
-			wrappedValue: rawValue,
-			of: ValidationRules(handler: handler),
-			mode: mode
-		)
+		self.init(wrappedValue: rawValue, of: ValidationRules(handler: handler), mode: mode)
+	}
+
+	// MARK: support for double optionals
+
+	public convenience init<Wrapped>(
+		wrappedValue rawValue: Value? = nil,
+		of rules: ValidationRules<Value, Error>,
+		mode: ValidationMode = .automatic
+	) where Value == Wrapped? {
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), mode: mode)
+	}
+
+	public convenience init<Wrapped>(
+		wrappedValue rawValue: Value? = nil,
+		mode: ValidationMode = .automatic,
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
+	) where Value == Wrapped? {
+		self.init(wrappedValue: rawValue, of: ValidationRules(handler: handler), defaultValue: .some(nil), mode: mode)
 	}
 
 	public var wrappedValue: Value? {
@@ -132,7 +158,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 
 			if !errors.isEmpty {
 				state.phase = .invalid(errors)
-			} else if let rawValue = state.rawValue {
+			} else if let rawValue = state.rawValue ?? defaultValue {
 				state.phase = .valid(rawValue)
 			} else {
 				state.phase = .invalid([])
