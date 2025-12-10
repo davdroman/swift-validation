@@ -27,11 +27,35 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 		self.validateIfNeeded()
 	}
 
+	public convenience init<Wrapped>(
+		wrappedValue rawValue: Value,
+		of rules: ValidationRules<Value, Error>,
+		mode: ValidationMode = .automatic
+	) where Value == Wrapped? {
+		self.init(
+			wrappedValue: rawValue,
+			of: rules,
+			mode: mode
+		)
+	}
+
 	public convenience init(
 		wrappedValue rawValue: Value,
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) {
+		self.init(
+			wrappedValue: rawValue,
+			of: ValidationRules(handler: handler),
+			mode: mode
+		)
+	}
+
+	public convenience init<Wrapped>(
+		wrappedValue rawValue: Value,
+		mode: ValidationMode = .automatic,
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
+	) where Value == Wrapped? {
 		self.init(
 			wrappedValue: rawValue,
 			of: ValidationRules(handler: handler),

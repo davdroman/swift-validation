@@ -38,6 +38,15 @@ extension Binding {
 	})
 	var name = ""
 
+	@Previewable @Validation<String?, String>({ $email in
+		if email == nil { "Cannot be unset" }
+		if let email {
+			if email.isEmpty { "Cannot be empty" }
+			if email.isBlank { "Cannot be blank" }
+		}
+	})
+	var email = nil
+
 	VStack(alignment: .leading) {
 		TextField(
 			"Name",
