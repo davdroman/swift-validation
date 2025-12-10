@@ -110,7 +110,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 
 	private func _validate() {
 		task?.cancel()
-		task = Task<Void, Never> {
+		task = Task {
 			state.phase = .validating
 
 			if let delay = mode.delay {
