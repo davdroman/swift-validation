@@ -42,42 +42,43 @@ extension Binding {
 	}
 }
 
-@MainActor
-extension Binding {
-	subscript<V, E>(
-		dynamicMember keyPath: KeyPath<Value, Validation<V, E>>
-	) -> Binding<V?> {
-		Binding<V?>(
-			get: { self.wrappedValue[keyPath: keyPath].rawValue },
-			set: { self.wrappedValue[keyPath: keyPath].wrappedValue = $0 }
-		)
-	}
-
-	func `default`<Wrapped>(
-		_ defaultValue: Wrapped
-	) -> Binding<Wrapped> where Value == Wrapped? {
-		Binding<Wrapped>(
-			get: { self.wrappedValue ?? defaultValue },
-			set: { self.wrappedValue = $0 }
-		)
-	}
-
-	func `default`<Wrapped: Equatable>(
-		_ defaultValue: Wrapped,
-		nilOnDefault: Bool = false
-	) -> Binding<Wrapped> where Value == Wrapped? {
-		Binding<Wrapped>(
-			get: { self.wrappedValue ?? defaultValue },
-			set: {
-				if nilOnDefault && $0 == defaultValue {
-					self.wrappedValue = nil
-				} else {
-					self.wrappedValue = $0
-				}
-			}
-		)
-	}
-}
+// FIXME: this impl needs refining because right now we get a thread hop when using it vs the above
+//@MainActor
+//extension Binding {
+//	subscript<V, E>(
+//		dynamicMember keyPath: KeyPath<Value, Validation<V, E>>
+//	) -> Binding<V?> {
+//		Binding<V?>(
+//			get: { self.wrappedValue[keyPath: keyPath].rawValue },
+//			set: { self.wrappedValue[keyPath: keyPath].wrappedValue = $0 }
+//		)
+//	}
+//
+//	func `default`<Wrapped>(
+//		_ defaultValue: Wrapped
+//	) -> Binding<Wrapped> where Value == Wrapped? {
+//		Binding<Wrapped>(
+//			get: { self.wrappedValue ?? defaultValue },
+//			set: { self.wrappedValue = $0 }
+//		)
+//	}
+//
+//	func `default`<Wrapped: Equatable>(
+//		_ defaultValue: Wrapped,
+//		nilOnDefault: Bool = false
+//	) -> Binding<Wrapped> where Value == Wrapped? {
+//		Binding<Wrapped>(
+//			get: { self.wrappedValue ?? defaultValue },
+//			set: {
+//				if nilOnDefault && $0 == defaultValue {
+//					self.wrappedValue = nil
+//				} else {
+//					self.wrappedValue = $0
+//				}
+//			}
+//		)
+//	}
+//}
 
 #if DEBUG
 #Preview("Bare") {
@@ -99,8 +100,8 @@ extension Binding {
 	VStack(alignment: .leading) {
 		TextField(
 			"Name",
-//			text: Binding($name, default: "") // clean change
-			text: Binding($name).default("") // thread hop?
+			text: Binding($name, default: "")
+//			text: Binding($name).default("") // thread hops
 		)
 		.textFieldStyle(.roundedBorder)
 
@@ -155,30 +156,31 @@ final class Inputs {
 	VStack(alignment: .leading) {
 		TextField(
 			"Name",
-//			text: Binding(inputs.$inputA, default: "") // clean change
-			text: $inputs.$inputA.default("") // thread hop?
+			text: Binding(inputs.$inputA, default: "")
+//			text: $inputs.$inputA.default("") // thread hops
 		)
 		.textFieldStyle(.roundedBorder)
 
-		Group {
-			switch inputs.$inputA.phase {
-			case .idle:
-				EmptyView()
-			case .validating:
-				Text("Validating...").foregroundColor(.gray)
-			case .invalid(let errors):
-				if let error = errors.first {
-					Text(error).foregroundColor(.red)
-				}
-			case .valid:
-				Text("All good!").foregroundColor(.green)
-			}
+		if let error = inputs.$inputA.errors?.first {
+			Text(error)
+				.foregroundColor(.red)
+				.font(.footnote)
 		}
 
-//		if let error = inputs.$inputA.errors?.first {
-//			Text(error)
-//				.foregroundColor(.red)
-//				.font(.footnote)
+		// this shows the thread hop
+//		Group {
+//			switch inputs.$inputA.phase {
+//			case .idle:
+//				EmptyView()
+//			case .validating:
+//				Text("Validating...").foregroundColor(.gray)
+//			case .invalid(let errors):
+//				if let error = errors.first {
+//					Text(error).foregroundColor(.red)
+//				}
+//			case .valid:
+//				Text("All good!").foregroundColor(.green)
+//			}
 //		}
 	}
 	.padding()
