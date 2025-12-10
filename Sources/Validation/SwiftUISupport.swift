@@ -160,11 +160,26 @@ final class Inputs {
 		)
 		.textFieldStyle(.roundedBorder)
 
-		if let error = inputs.$inputA.errors?.first {
-			Text(error)
-				.foregroundColor(.red)
-				.font(.footnote)
+		Group {
+			switch inputs.$inputA.phase {
+			case .idle:
+				EmptyView()
+			case .validating:
+				Text("Validating...").foregroundColor(.gray)
+			case .invalid(let errors):
+				if let error = errors.first {
+					Text(error).foregroundColor(.red)
+				}
+			case .valid:
+				Text("All good!").foregroundColor(.green)
+			}
 		}
+
+//		if let error = inputs.$inputA.errors?.first {
+//			Text(error)
+//				.foregroundColor(.red)
+//				.font(.footnote)
+//		}
 	}
 	.padding()
 }
