@@ -111,8 +111,6 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 	private func _validate() {
 		task?.cancel()
 		task = Task {
-			state.phase = .validating
-
 			if let delay = mode.delay {
 				@Dependency(\.continuousClock) var clock
 				do {
@@ -121,6 +119,8 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 					return // cancelled
 				}
 			}
+
+			state.phase = .validating
 
 			let errors = await rules.evaluate(state.rawValue)
 

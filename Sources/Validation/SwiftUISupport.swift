@@ -87,10 +87,10 @@ extension Binding {
 #if DEBUG
 #Preview("Bare") {
 	@Previewable @Validation({ name in
-//		let _ = await {
-//			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
-//			catch { print(error) }
-//		}()
+		let _ = await {
+			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
+			catch { print(error) }
+		}()
 		switch name {
 		case nil:
 			"Cannot be unset"
