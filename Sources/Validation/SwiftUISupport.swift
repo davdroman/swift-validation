@@ -42,13 +42,50 @@ extension Binding {
 	}
 }
 
+@MainActor
+extension Binding {
+	subscript<V, E>(
+		dynamicMember keyPath: KeyPath<Value, Validation<V, E>>
+	) -> Binding<V?> {
+		Binding<V?>(
+			get: { self.wrappedValue[keyPath: keyPath].rawValue },
+			set: { self.wrappedValue[keyPath: keyPath].wrappedValue = $0 }
+		)
+	}
+
+	func `default`<Wrapped>(
+		_ defaultValue: Wrapped
+	) -> Binding<Wrapped> where Value == Wrapped? {
+		Binding<Wrapped>(
+			get: { self.wrappedValue ?? defaultValue },
+			set: { self.wrappedValue = $0 }
+		)
+	}
+
+	func `default`<Wrapped: Equatable>(
+		_ defaultValue: Wrapped,
+		nilOnDefault: Bool = false
+	) -> Binding<Wrapped> where Value == Wrapped? {
+		Binding<Wrapped>(
+			get: { self.wrappedValue ?? defaultValue },
+			set: {
+				if nilOnDefault && $0 == defaultValue {
+					self.wrappedValue = nil
+				} else {
+					self.wrappedValue = $0
+				}
+			}
+		)
+	}
+}
+
 #if DEBUG
 #Preview("Bare") {
 	@Previewable @Validation({ name in
-		let _ = await {
-			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
-			catch { print(error) }
-		}()
+//		let _ = await {
+//			do { try await Task.sleep(nanoseconds: NSEC_PER_SEC/2) }
+//			catch { print(error) }
+//		}()
 		switch name {
 		case nil:
 			"Cannot be unset"
@@ -62,7 +99,8 @@ extension Binding {
 	VStack(alignment: .leading) {
 		TextField(
 			"Name",
-			text: Binding($name, default: "", nilOnDefault: true)
+//			text: Binding($name, default: "") // clean change
+			text: Binding($name).default("") // thread hop?
 		)
 		.textFieldStyle(.roundedBorder)
 
@@ -85,49 +123,50 @@ extension Binding {
 	.padding()
 }
 
-//@MainActor
-//@Observable
-//final class Inputs {
-//	@ObservationIgnored
-//	@Validation<String?, String>({ input in
-//		switch input {
-//		case nil: "Cannot be nil"
-//		case let input?:
-//			if input.isEmpty { "Cannot be empty" }
-//			if input.isBlank { "Cannot be blank" }
-//		}
-//	})
-//	var inputA = nil
-//
-//	@ObservationIgnored
-//	@Validation<String?, String>({ $input in
-//		switch input {
-//		case nil: "Cannot be nil"
-//		case let input?:
-//			if input.isEmpty { "Cannot be empty" }
-//			if input.isBlank { "Cannot be blank" }
-//		}
-//	})
-//	var inputB = nil
-//}
-//
-//#Preview("@State") {
-//	@Previewable @State var inputs = Inputs()
-//
-//	VStack(alignment: .leading) {
-//		TextField(
-//			"Name",
-//			text: Binding(inputs.$inputA, default: "")
-//		)
-//		.textFieldStyle(.roundedBorder)
-//
-//		if let error = inputs.$inputA.errors?.first {
-//			Text(error)
-//				.foregroundColor(.red)
-//				.font(.footnote)
-//		}
-//	}
-//	.padding()
-//}
+@MainActor
+@Observable
+final class Inputs {
+	@ObservationIgnored
+	@Validation({ input in
+		switch input {
+		case nil: "Cannot be nil"
+		case let input?:
+			if input.isEmpty { "Cannot be empty" }
+			if input.isBlank { "Cannot be blank" }
+		}
+	})
+	var inputA: String?
+
+	@ObservationIgnored
+	@Validation({ input in
+		switch input {
+		case nil: "Cannot be nil"
+		case let input?:
+			if input.isEmpty { "Cannot be empty" }
+			if input.isBlank { "Cannot be blank" }
+		}
+	})
+	var inputB: String?
+}
+
+#Preview("@State") {
+	@Previewable @State var inputs = Inputs()
+
+	VStack(alignment: .leading) {
+		TextField(
+			"Name",
+//			text: Binding(inputs.$inputA, default: "") // clean change
+			text: $inputs.$inputA.default("") // thread hop?
+		)
+		.textFieldStyle(.roundedBorder)
+
+		if let error = inputs.$inputA.errors?.first {
+			Text(error)
+				.foregroundColor(.red)
+				.font(.footnote)
+		}
+	}
+	.padding()
+}
 #endif
 #endif
