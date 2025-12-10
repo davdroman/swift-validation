@@ -1,6 +1,6 @@
 public enum ValidationPhase<Value, Error> {
 	case idle
-	case validating
+	case validating([Error]?)
 	case invalid([Error])
 	case valid(Value)
 }
@@ -33,10 +33,12 @@ extension ValidationPhase {
 
 extension ValidationPhase {
 	public var errors: [Error]? {
-		if case let .invalid(errors) = self {
+		switch self {
+		case let .validating(errors?), let .invalid(errors):
 			return errors
+		default:
+			return nil
 		}
-		return nil
 	}
 
 	public var value: Value? {

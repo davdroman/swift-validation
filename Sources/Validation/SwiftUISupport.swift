@@ -42,47 +42,46 @@ extension Binding {
 	}
 }
 
-// FIXME: this impl needs refining because right now we get a thread hop when using it vs the above
-//@MainActor
-//extension Binding {
-//	subscript<V, E>(
-//		dynamicMember keyPath: KeyPath<Value, Validation<V, E>>
-//	) -> Binding<V?> {
-//		Binding<V?>(
-//			get: { self.wrappedValue[keyPath: keyPath].rawValue },
-//			set: { newValue, transaction in
-//				self.transaction(transaction).wrappedValue[keyPath: keyPath].wrappedValue = newValue
-//			}
-//		)
-//	}
-//
-//	func `default`<Wrapped>(
-//		_ defaultValue: Wrapped
-//	) -> Binding<Wrapped> where Value == Wrapped? {
-//		Binding<Wrapped>(
-//			get: { self.wrappedValue ?? defaultValue },
-//			set: { newValue, transaction in
-//				self.transaction(transaction).wrappedValue = newValue
-//			}
-//		)
-//	}
-//
-//	func `default`<Wrapped: Equatable>(
-//		_ defaultValue: Wrapped,
-//		nilOnDefault: Bool = false
-//	) -> Binding<Wrapped> where Value == Wrapped? {
-//		Binding<Wrapped>(
-//			get: { self.wrappedValue ?? defaultValue },
-//			set: { newValue, transaction in
-//				if nilOnDefault && newValue == defaultValue {
-//					self.transaction(transaction).wrappedValue = nil
-//				} else {
-//					self.transaction(transaction).wrappedValue = newValue
-//				}
-//			}
-//		)
-//	}
-//}
+@MainActor
+extension Binding {
+	subscript<V, E>(
+		dynamicMember keyPath: KeyPath<Value, Validation<V, E>>
+	) -> Binding<V?> {
+		Binding<V?>(
+			get: { self.wrappedValue[keyPath: keyPath].rawValue },
+			set: { newValue, transaction in
+				self.transaction(transaction).wrappedValue[keyPath: keyPath].wrappedValue = newValue
+			}
+		)
+	}
+
+	func `default`<Wrapped>(
+		_ defaultValue: Wrapped
+	) -> Binding<Wrapped> where Value == Wrapped? {
+		Binding<Wrapped>(
+			get: { self.wrappedValue ?? defaultValue },
+			set: { newValue, transaction in
+				self.transaction(transaction).wrappedValue = newValue
+			}
+		)
+	}
+
+	func `default`<Wrapped: Equatable>(
+		_ defaultValue: Wrapped,
+		nilOnDefault: Bool = false
+	) -> Binding<Wrapped> where Value == Wrapped? {
+		Binding<Wrapped>(
+			get: { self.wrappedValue ?? defaultValue },
+			set: { newValue, transaction in
+				if nilOnDefault && newValue == defaultValue {
+					self.transaction(transaction).wrappedValue = nil
+				} else {
+					self.transaction(transaction).wrappedValue = newValue
+				}
+			}
+		)
+	}
+}
 
 #if DEBUG
 #Preview("Bare") {
@@ -104,8 +103,8 @@ extension Binding {
 	VStack(alignment: .leading) {
 		TextField(
 			"Name",
-			text: Binding($name, default: "")
-//			text: Binding($name).default("") // thread hops
+//			text: Binding($name, default: "")
+			text: Binding($name).default("")
 		)
 		.textFieldStyle(.roundedBorder)
 
@@ -161,7 +160,7 @@ final class Inputs {
 		TextField(
 			"Name",
 			text: Binding(inputs.$inputA, default: "")
-//			text: $inputs.$inputA.default("") // thread hops
+//			text: $inputs.$inputA.default("")
 		)
 		.textFieldStyle(.roundedBorder)
 

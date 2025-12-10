@@ -120,7 +120,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 				}
 			}
 
-			state.phase = .validating
+			state.phase = .validating(state.phase.errors)
 
 			let errors = await rules.evaluate(state.rawValue)
 
