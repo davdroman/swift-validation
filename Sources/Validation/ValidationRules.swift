@@ -1,4 +1,4 @@
-public typealias ValidationRulesHandler<Value, Error> = @Sendable (ValidationInput<Value>) async -> [Error]
+public typealias ValidationRulesHandler<Value, Error> = @Sendable (Value?) async -> [Error]
 
 public struct ValidationRules<Value: Sendable, Error: Sendable>: Sendable {
 	private let handler: ValidationRulesHandler<Value, Error>
@@ -9,7 +9,7 @@ public struct ValidationRules<Value: Sendable, Error: Sendable>: Sendable {
 		self.handler = handler
 	}
 
-	func evaluate(_ value: ValidationInput<Value>) async -> [Error] {
+	func evaluate(_ value: Value?) async -> [Error] {
 		await handler(value)
 	}
 }

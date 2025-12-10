@@ -1,9 +1,7 @@
-public import NonEmpty
-
 public enum ValidationPhase<Value, Error> {
 	case idle
 	case validating
-	case invalid(NonEmptyArray<Error>)
+	case invalid([Error])
 	case valid(Value)
 }
 
@@ -34,7 +32,7 @@ extension ValidationPhase {
 }
 
 extension ValidationPhase {
-	public var errors: NonEmptyArray<Error>? {
+	public var errors: [Error]? {
 		if case let .invalid(errors) = self {
 			return errors
 		}

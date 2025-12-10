@@ -1,7 +1,7 @@
 @dynamicMemberLookup
 public struct _ValidationState<Value, Error> {
-	@ValidationInput
-	public internal(set) var rawValue: Value
+//	@ValidationInput
+	public internal(set) var rawValue: Value?
 	public internal(set) var phase: ValidationPhase<Value, Error>
 
 	public subscript<T>(dynamicMember keyPath: KeyPath<ValidationPhase<Value, Error>, T>) -> T {

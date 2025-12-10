@@ -16,7 +16,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 	public private(set) var state: _ValidationState<Value, Error>
 
 	public init(
-		wrappedValue rawValue: Value,
+		wrappedValue rawValue: Value? = nil,
 		of rules: ValidationRules<Value, Error>,
 		mode: ValidationMode = .automatic
 	) {
@@ -27,35 +27,11 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 		self.validateIfNeeded()
 	}
 
-	public convenience init<Wrapped>(
-		wrappedValue rawValue: Value,
-		of rules: ValidationRules<Value, Error>,
-		mode: ValidationMode = .automatic
-	) where Value == Wrapped? {
-		self.init(
-			wrappedValue: rawValue,
-			of: rules,
-			mode: mode
-		)
-	}
-
 	public convenience init(
-		wrappedValue rawValue: Value,
+		wrappedValue rawValue: Value? = nil,
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) {
-		self.init(
-			wrappedValue: rawValue,
-			of: ValidationRules(handler: handler),
-			mode: mode
-		)
-	}
-
-	public convenience init<Wrapped>(
-		wrappedValue rawValue: Value,
-		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
-	) where Value == Wrapped? {
 		self.init(
 			wrappedValue: rawValue,
 			of: ValidationRules(handler: handler),
@@ -68,18 +44,13 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 			state.value
 		}
 		set {
-			guard let newValue else { return }
-
 			let oldValue = state.rawValue
-			let hasValueChanged = !equals(oldValue, newValue)
+			let hasValueChanged = !equals(oldValue as Any, newValue as Any)
 
-			state.rawValue = newValue
-
-//			if hasValueChanged {
-//				clearErrors()
-//			}
-
-			validateIfNeeded()
+			if hasValueChanged {
+				state.rawValue = newValue
+				validateIfNeeded()
+			}
 		}
 	}
 
@@ -152,7 +123,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 				}
 			}
 
-			let errors = await rules.evaluate(state.$rawValue)
+			let errors = await rules.evaluate(state.rawValue)
 
 			do {
 				try Task.checkCancellation()
@@ -160,22 +131,18 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 				return // cancelled
 			}
 
-			if let errors = NonEmpty(rawValue: errors) {
+			if !errors.isEmpty {
 				state.phase = .invalid(errors)
+			} else if let rawValue = state.rawValue {
+				state.phase = .valid(rawValue)
 			} else {
-				state.phase = .valid(state.rawValue)
+				state.phase = .invalid([])
 			}
 		}
 	}
 
 	deinit {
 		task?.cancel()
-	}
-
-	public func clearErrors() {
-		if state.isInvalid {
-			state.phase = .idle
-		}
 	}
 
 	public subscript<T>(dynamicMember keyPath: KeyPath<_ValidationState<Value, Error>, T>) -> T {
