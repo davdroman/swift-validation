@@ -13,3 +13,9 @@ public struct ValidationRules<Value: Sendable, Error: Sendable>: Sendable {
 		await handler(value)
 	}
 }
+
+extension ValidationRules {
+	public static var noop: ValidationRules {
+		ValidationRules { _ in }
+	}
+}
