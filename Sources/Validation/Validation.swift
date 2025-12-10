@@ -11,7 +11,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 	@ObservationIgnored
 	private let mode: ValidationMode
 	@ObservationIgnored
-	private var task: (any Cancellable & Sendable)?
+	private var task: Task<Void, Never>?
 	public private(set) var state: _ValidationState<Value, Error>
 
 	public init(
