@@ -5,7 +5,7 @@ public import Observation
 @Observable
 @propertyWrapper
 @dynamicMemberLookup
-public final class Validation<Value: Sendable, Error: Sendable>: AnyValidation, Sendable {
+public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 	@ObservationIgnored
 	private let rules: ValidationRules<Value, Error>
 	@ObservationIgnored
@@ -23,7 +23,6 @@ public final class Validation<Value: Sendable, Error: Sendable>: AnyValidation, 
 		self.rules = rules
 		self.mode = mode
 
-		super.init()
 		self.validateIfNeeded()
 	}
 
