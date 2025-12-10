@@ -30,6 +30,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 		self.validateIfNeeded()
 	}
 
+	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		of rules: ValidationRules<Value, Error>,
@@ -38,6 +39,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, mode: mode)
 	}
 
+	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		mode: ValidationMode = .automatic,
