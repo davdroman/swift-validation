@@ -6,26 +6,34 @@ public import Observation
 @Observable
 @propertyWrapper
 @dynamicMemberLookup
-public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
+public final class Validation<Value: Sendable, Error: Sendable, Context: Sendable>: Sendable {
+	public typealias Rules = ValidationRules<Value, Error, Context>
+
 	@ObservationIgnored
-	private let rules: ValidationRules<Value, Error>
+	private let rules: Rules
 	@ObservationIgnored
 	private let defaultValue: Value?
 	@ObservationIgnored
 	private let mode: ValidationMode
 	@ObservationIgnored
-	private var task: Task<Void, Never>?
+	private let context: Context
+
 	public private(set) var state: _ValidationState<Value, Error>
+
+	@ObservationIgnored
+	private var task: Task<Void, Never>?
 
 	private init(
 		wrappedValue rawValue: Value? = nil,
-		of rules: ValidationRules<Value, Error>,
+		of rules: Rules,
 		defaultValue: Value?,
+		context: Context,
 		mode: ValidationMode = .automatic
 	) {
 		self.state = .init(rawValue: rawValue, phase: .idle)
 		self.rules = rules
 		self.defaultValue = defaultValue
+		self.context = context
 		self.mode = mode
 
 		self.validateIfNeeded()
@@ -34,37 +42,41 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
-		of rules: ValidationRules<Value, Error>,
+		of rules: Rules,
+		context: Context,
 		mode: ValidationMode = .automatic
 	) {
-		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, mode: mode)
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: context, mode: mode)
 	}
 
 	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
+		context: Context,
 		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
+		@ArrayBuilder<Error> _ handler: @escaping Rules.Handler
 	) {
-		self.init(wrappedValue: rawValue, of: ValidationRules(handler: handler), mode: mode)
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), context: context, mode: mode)
 	}
 
 	// MARK: support for double optionals
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
-		of rules: ValidationRules<Value, Error>,
+		of rules: Rules,
+		context: Context,
 		mode: ValidationMode = .automatic
 	) where Value == Wrapped? {
-		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), mode: mode)
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: context, mode: mode)
 	}
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
+		context: Context,
 		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
+		@ArrayBuilder<Error> _ handler: @escaping Rules.Handler
 	) where Value == Wrapped? {
-		self.init(wrappedValue: rawValue, of: ValidationRules(handler: handler), defaultValue: .some(nil), mode: mode)
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: context, mode: mode)
 	}
 
 	public var wrappedValue: Value? {
@@ -82,7 +94,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 		}
 	}
 
-	public var projectedValue: Validation<Value, Error> {
+	public var projectedValue: Validation {
 		self
 	}
 
@@ -151,7 +163,7 @@ public final class Validation<Value: Sendable, Error: Sendable>: Sendable {
 
 			state.phase = .validating(state.phase.errors)
 
-			let errors = await rules.evaluate(state.rawValue)
+			let errors = await rules.evaluate(state.rawValue, in: context)
 
 			do {
 				try Task.checkCancellation()
