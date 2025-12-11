@@ -1,11 +1,16 @@
 public import Builders
 
 public struct ValidationRules<Value: Sendable, Error: Sendable, Context: Sendable>: Sendable {
-	public typealias Handler = @MainActor (Value?, Context) async -> [Error]
+	public typealias Handler = @MainActor (Value?) async -> [Error]
+	public typealias HandlerWithContext = @MainActor (Value?, Context) async -> [Error]
 
-	private let handler: Handler
+	private let handler: HandlerWithContext
 
-	public init(@ArrayBuilder<Error> handler: @escaping Handler) {
+	public init(@ArrayBuilder<Error> handler: @escaping Handler) where Context == Void {
+		self.handler = { value, _ in await handler(value) }
+	}
+
+	public init(@ArrayBuilder<Error> handler: @escaping HandlerWithContext) {
 		self.handler = handler
 	}
 

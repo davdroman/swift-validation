@@ -174,16 +174,18 @@ extension Binding {
 @MainActor
 @Observable
 final class Inputs {
-//	@ObservationIgnored
-//	@Validation({ input in
-//		switch input {
-//		case nil: "Cannot be nil"
-//		case let input?:
-//			if input.isEmpty { "Cannot be empty" }
-//			if input.isBlank { "Cannot be blank" }
-//		}
-//	})
-	@Validation({ input, inputs in
+	@ObservationIgnored
+	lazy var _inputA = Validation<String, _, _>(context: self) { input, inputs in
+		switch input {
+		case nil: "Cannot be nil"
+		case let input?:
+			if input.isEmpty { "Cannot be empty" }
+			if input.isBlank { "Cannot be blank" }
+		}
+	}
+
+	@ObservationIgnored
+	@Validation({ input in
 		switch input {
 		case nil: "Cannot be nil"
 		case let input?:
@@ -191,52 +193,7 @@ final class Inputs {
 			if input.isBlank { "Cannot be blank" }
 		}
 	})
-	var inputA: String?
-
-	// synthesizes:
-	lazy var $inputA = Validation<String, _, _>(context: self) { input, inputs in
-		switch input {
-		case nil: "Cannot be nil"
-		case let input?:
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		}
-	}
-	var inputA: String? {
-		get { $inputA.wrappedValue }
-		set { $inputA.wrappedValue = newValue }
-	}
-
-//	@ObservationIgnored
-//	@Validation({ input in
-//		switch input {
-//		case nil: "Cannot be nil"
-//		case let input?:
-//			if input.isEmpty { "Cannot be empty" }
-//			if input.isBlank { "Cannot be blank" }
-//		}
-//	})
-//	var inputB: String?
-
-	@ObservationIgnored
-	lazy var inputB = Validation<String, String, Inputs>(context: self) { input, inputs in
-		switch input {
-		case nil: "Cannot be nil"
-		case let input?:
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		}
-	}
-
-	@ObservationIgnored
-	lazy var inputC = Validation<String, String, Void>(context: ()) { input, inputs in
-		switch input {
-		case nil: "Cannot be nil"
-		case let input?:
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		}
-	}
+	var inputB: String?
 }
 
 #Preview("@State") {
@@ -245,12 +202,12 @@ final class Inputs {
 	VStack(alignment: .leading) {
 		TextField(
 			"Name",
-			text: Binding(inputs.$inputA, default: "")
+			text: Binding(inputs._inputA, default: "")
 //			text: $inputs.$inputA.default("")
 		)
 		.textFieldStyle(.roundedBorder)
 
-		if let error = inputs.$inputA.errors?.first {
+		if let error = inputs._inputA.errors?.first {
 			Text(error)
 				.foregroundColor(.red)
 				.font(.footnote)

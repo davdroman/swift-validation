@@ -50,6 +50,15 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
+		mode: ValidationMode = .automatic
+	) where Context == Void {
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: (), mode: mode)
+	}
+
+	@_disfavoredOverload
+	public convenience init(
+		wrappedValue rawValue: Value? = nil,
+		of rules: Rules,
 		context: Context,
 		mode: ValidationMode = .automatic
 	) {
@@ -59,14 +68,31 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
-		context: Context,
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping Rules.Handler
+	) where Context == Void {
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), context: (), mode: mode)
+	}
+
+	@_disfavoredOverload
+	public convenience init(
+		wrappedValue rawValue: Value? = nil,
+		context: Context,
+		mode: ValidationMode = .automatic,
+		@ArrayBuilder<Error> _ handler: @escaping Rules.HandlerWithContext
 	) {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), context: context, mode: mode)
 	}
 
 	// MARK: support for double optionals
+
+	public convenience init<Wrapped>(
+		wrappedValue rawValue: Value? = nil,
+		of rules: Rules,
+		mode: ValidationMode = .automatic
+	) where Value == Wrapped?, Context == Void {
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: (), mode: mode)
+	}
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
@@ -79,9 +105,17 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
+		mode: ValidationMode = .automatic,
+		@ArrayBuilder<Error> _ handler: @escaping Rules.HandlerWithContext
+	) where Value == Wrapped?, Context == Void {
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: (), mode: mode)
+	}
+
+	public convenience init<Wrapped>(
+		wrappedValue rawValue: Value? = nil,
 		context: Context,
 		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping Rules.Handler
+		@ArrayBuilder<Error> _ handler: @escaping Rules.HandlerWithContext
 	) where Value == Wrapped? {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: context, mode: mode)
 	}
