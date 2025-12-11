@@ -194,7 +194,6 @@ final class Inputs {
 	var inputA: String?
 
 	// synthesizes:
-	@ObservationIgnored
 	lazy var $inputA = Validation<String, _, _>(context: self) { input, inputs in
 		switch input {
 		case nil: "Cannot be nil"
