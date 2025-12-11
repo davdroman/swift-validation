@@ -8,6 +8,7 @@ public import Observation
 @dynamicMemberLookup
 public final class Validation<Value: Sendable, Error: Sendable, Context: Sendable>: Sendable {
 	public typealias Rules = ValidationRules<Value, Error, Context>
+	public typealias Phase = ValidationPhase<Value, Error>
 
 	@ObservationIgnored
 	private let rules: Rules
@@ -18,7 +19,12 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	@ObservationIgnored
 	private let context: Context
 
-	public private(set) var state: _ValidationState<Value, Error>
+	private(set) var rawValue: Value?
+	public internal(set) var phase: Phase
+
+	public subscript<T>(dynamicMember keyPath: KeyPath<Phase, T>) -> T {
+		phase[keyPath: keyPath]
+	}
 
 	@ObservationIgnored
 	private var task: Task<Void, Never>?
@@ -30,7 +36,8 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		context: Context,
 		mode: ValidationMode = .automatic
 	) {
-		self.state = .init(rawValue: rawValue, phase: .idle)
+		self.rawValue = rawValue
+		self.phase = .idle
 		self.rules = rules
 		self.defaultValue = defaultValue
 		self.context = context
@@ -81,14 +88,14 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 
 	public var wrappedValue: Value? {
 		get {
-			state.value
+			phase.value
 		}
 		set {
-			let oldValue = state.rawValue
+			let oldValue = rawValue
 			let hasValueChanged = !equals(oldValue as Any, newValue as Any)
 
 			if hasValueChanged {
-				state.rawValue = newValue
+				rawValue = newValue
 				validateIfNeeded()
 			}
 		}
@@ -161,9 +168,9 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 				}
 			}
 
-			state.phase = .validating(state.phase.errors)
+			phase = .validating(phase.errors)
 
-			let errors = await rules.evaluate(state.rawValue, in: context)
+			let errors = await rules.evaluate(rawValue, in: context)
 
 			do {
 				try Task.checkCancellation()
@@ -172,21 +179,17 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 			}
 
 			if !errors.isEmpty {
-				state.phase = .invalid(errors)
-			} else if let rawValue = state.rawValue ?? defaultValue {
-				state.phase = .valid(rawValue)
+				phase = .invalid(errors)
+			} else if let rawValue = rawValue ?? defaultValue {
+				phase = .valid(rawValue)
 			} else {
-				state.phase = .invalid([])
+				phase = .invalid([])
 			}
 		}
 	}
 
 	deinit {
 		task?.cancel()
-	}
-
-	public subscript<T>(dynamicMember keyPath: KeyPath<_ValidationState<Value, Error>, T>) -> T {
-		state[keyPath: keyPath]
 	}
 }
 

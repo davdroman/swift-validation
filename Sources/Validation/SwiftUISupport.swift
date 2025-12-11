@@ -183,15 +183,29 @@ final class Inputs {
 //			if input.isBlank { "Cannot be blank" }
 //		}
 //	})
-	@ObservationIgnored
-	lazy var inputA = Validation<String, String, Inputs>(context: self) { input, inputs in
-		let _ = print(inputs.inputB)
+	@Validation({ input, inputs in
 		switch input {
 		case nil: "Cannot be nil"
 		case let input?:
 			if input.isEmpty { "Cannot be empty" }
 			if input.isBlank { "Cannot be blank" }
 		}
+	})
+	var inputA: String?
+
+	// synthesizes:
+	@ObservationIgnored
+	lazy var $inputA = Validation<String, _, _>(context: self) { input, inputs in
+		switch input {
+		case nil: "Cannot be nil"
+		case let input?:
+			if input.isEmpty { "Cannot be empty" }
+			if input.isBlank { "Cannot be blank" }
+		}
+	}
+	var inputA: String? {
+		get { $inputA.wrappedValue }
+		set { $inputA.wrappedValue = newValue }
 	}
 
 //	@ObservationIgnored
@@ -232,12 +246,12 @@ final class Inputs {
 	VStack(alignment: .leading) {
 		TextField(
 			"Name",
-			text: Binding(inputs.inputA, default: "")
-			//			text: $inputs.$inputA.default("")
+			text: Binding(inputs.$inputA, default: "")
+//			text: $inputs.$inputA.default("")
 		)
 		.textFieldStyle(.roundedBorder)
 
-		if let error = inputs.inputA.errors?.first {
+		if let error = inputs.$inputA.errors?.first {
 			Text(error)
 				.foregroundColor(.red)
 				.font(.footnote)
