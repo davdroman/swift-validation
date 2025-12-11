@@ -1,5 +1,5 @@
 {
-  "originHash" : "955034014139bb7ca7d7160da4e6686c9911d7e6a234be14a6f0f4b77ea275c4",
+  "originHash" : "7c877ddd8509a08737d75267415c5dbb105510557ff06be053d60f0641009c31",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "fd16d76fd8b9a976d88bfb6cacc05ca8d19c91b6",
         "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "swift-builders",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/davdroman/swift-builders",
+      "state" : {
+        "revision" : "72cfbfffd6a56883a3c590a87f88a71c819d6de3",
+        "version" : "0.10.0"
       }
     },
     {
