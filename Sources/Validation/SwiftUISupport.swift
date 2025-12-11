@@ -173,6 +173,23 @@ extension Binding {
 
 @MainActor
 @Observable
+final class ViewModel {
+	init() {}
+
+	@ObservationIgnored
+	@Validation({ (input: String?, inputs: ViewModel) -> [String] in
+		switch input {
+		case nil: "Cannot be nil"
+		case let input?:
+			if input.isEmpty { "Cannot be empty" }
+			if input.isBlank { "Cannot be blank" }
+		}
+	})
+	var inputA: String?
+}
+
+@MainActor
+@Observable
 final class Inputs {
 //	@ObservationIgnored
 //	@Validation({ input in
@@ -183,29 +200,53 @@ final class Inputs {
 //			if input.isBlank { "Cannot be blank" }
 //		}
 //	})
-	@Validation({ input, inputs in
-		switch input {
-		case nil: "Cannot be nil"
-		case let input?:
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		}
-	})
-	var inputA: String?
+//	@ObservationIgnored
+//	@Validation<String, String, Inputs>({ input, inputs in
+//		switch input {
+//		case nil: "Cannot be nil"
+//		case let input?:
+//			if input.isEmpty { "Cannot be empty" }
+//			if input.isBlank { "Cannot be blank" }
+//		}
+//	})
+//	var inputA: String?
 
-	// synthesizes:
-	lazy var $inputA = Validation<String, _, _>(context: self) { input, inputs in
-		switch input {
-		case nil: "Cannot be nil"
-		case let input?:
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		}
-	}
-	var inputA: String? {
-		get { $inputA.wrappedValue }
-		set { $inputA.wrappedValue = newValue }
-	}
+//	var inputA: String? {
+//		get {
+//			return _inputA.wrappedValue
+//		}
+//		set {
+//			_inputA.wrappedValue = newValue
+//		}
+//	}
+//
+//	lazy var _inputA = Validation<String, String, Inputs>(context: self) { input, inputs in
+//		switch input {
+//		case nil:
+//			"Cannot be nil"
+//		case let input?:
+//			if input.isEmpty {
+//				"Cannot be empty"
+//			}
+//			if input.isBlank {
+//				"Cannot be blank"
+//			}
+//		}
+//	}
+
+//	// synthesizes:
+//	lazy var $inputA = Validation<String, _, _>(context: self) { input, inputs in
+//		switch input {
+//		case nil: "Cannot be nil"
+//		case let input?:
+//			if input.isEmpty { "Cannot be empty" }
+//			if input.isBlank { "Cannot be blank" }
+//		}
+//	}
+//	var inputA: String? {
+//		get { $inputA.wrappedValue }
+//		set { $inputA.wrappedValue = newValue }
+//	}
 
 //	@ObservationIgnored
 //	@Validation({ input in
@@ -218,62 +259,60 @@ final class Inputs {
 //	})
 //	var inputB: String?
 
-	@ObservationIgnored
-	lazy var inputB = Validation<String, String, Inputs>(context: self) { input, inputs in
-		switch input {
-		case nil: "Cannot be nil"
-		case let input?:
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		}
-	}
-
-	@ObservationIgnored
-	lazy var inputC = Validation<String, String, Void>(context: ()) { input, inputs in
-		switch input {
-		case nil: "Cannot be nil"
-		case let input?:
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		}
-	}
+//	lazy var inputB = Validation<String, String, Inputs>(context: self) { input, inputs in
+//		switch input {
+//		case nil: "Cannot be nil"
+//		case let input?:
+//			if input.isEmpty { "Cannot be empty" }
+//			if input.isBlank { "Cannot be blank" }
+//		}
+//	}
+//
+//	lazy var inputC = Validation<String, String, Void>(context: ()) { input, inputs in
+//		switch input {
+//		case nil: "Cannot be nil"
+//		case let input?:
+//			if input.isEmpty { "Cannot be empty" }
+//			if input.isBlank { "Cannot be blank" }
+//		}
+//	}
 }
 
-#Preview("@State") {
-	@Previewable @State var inputs = Inputs()
-
-	VStack(alignment: .leading) {
-		TextField(
-			"Name",
-			text: Binding(inputs.$inputA, default: "")
-//			text: $inputs.$inputA.default("")
-		)
-		.textFieldStyle(.roundedBorder)
-
-		if let error = inputs.$inputA.errors?.first {
-			Text(error)
-				.foregroundColor(.red)
-				.font(.footnote)
-		}
-
-		// this shows the thread hop
-		//		Group {
-		//			switch inputs.$inputA.phase {
-		//			case .idle:
-		//				EmptyView()
-		//			case .validating:
-		//				Text("Validating...").foregroundColor(.gray)
-		//			case .invalid(let errors):
-		//				if let error = errors.first {
-		//					Text(error).foregroundColor(.red)
-		//				}
-		//			case .valid:
-		//				Text("All good!").foregroundColor(.green)
-		//			}
-		//		}
-	}
-	//	.animation(.smooth(duration: 0.1), value: inputs.$inputA.phase)
-	.padding()
-}
+//#Preview("@State") {
+//	@Previewable @State var inputs = Inputs()
+//
+//	VStack(alignment: .leading) {
+////		TextField(
+////			"Name",
+////			text: Binding(inputs.$inputA, default: "")
+//////			text: $inputs.$inputA.default("")
+////		)
+////		.textFieldStyle(.roundedBorder)
+//
+//		if let error = inputs.$inputA.errors?.first {
+//			Text(error)
+//				.foregroundColor(.red)
+//				.font(.footnote)
+//		}
+//
+//		// this shows the thread hop
+//		//		Group {
+//		//			switch inputs.$inputA.phase {
+//		//			case .idle:
+//		//				EmptyView()
+//		//			case .validating:
+//		//				Text("Validating...").foregroundColor(.gray)
+//		//			case .invalid(let errors):
+//		//				if let error = errors.first {
+//		//					Text(error).foregroundColor(.red)
+//		//				}
+//		//			case .valid:
+//		//				Text("All good!").foregroundColor(.green)
+//		//			}
+//		//		}
+//	}
+//	//	.animation(.smooth(duration: 0.1), value: inputs.$inputA.phase)
+//	.padding()
+//}
 #endif
 #endif

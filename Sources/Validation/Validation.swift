@@ -4,7 +4,6 @@ public import Observation
 
 @MainActor
 @Observable
-@propertyWrapper
 @dynamicMemberLookup
 public final class Validation<Value: Sendable, Error: Sendable, Context: Sendable>: Sendable {
 	public typealias Rules = ValidationRules<Value, Error, Context>
