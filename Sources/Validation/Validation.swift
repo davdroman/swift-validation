@@ -43,7 +43,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		self.context = context
 		self.mode = mode
 
-		self.validateIfPossible()
+		self.validateIfPossible(reportIssue: false)
 	}
 
 	@_disfavoredOverload
@@ -130,20 +130,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 			guard hasValueChanged else { return }
 
 			rawValue = newValue
-
-			if let context {
-				_validate(in: context)
-			} else {
-				reportIssue(
-					"""
-					Validation value mutated without context.
-
-					Validation cannot be performed without a context.
-
-					Please set the context using the `$<property>.setContext(_:)` method before mutating the value — ideally in the initializer of the enclosing type.
-					"""
-				)
-			}
+			validateIfPossible()
 		}
 	}
 
@@ -156,54 +143,23 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		validateIfPossible()
 	}
 
-	private func validateIfPossible() {
-//		if mode.isAutomatic {
+	private func validateIfPossible(reportIssue report: Bool = true) {
 		if let context {
-			_validate(in: context)
+			validate(in: context)
+		} else if report {
+			reportIssue(
+				"""
+				Validation value mutated without context.
+
+				Validation cannot be performed without a context.
+
+				Please set the context using the `$<property>.setContext(_:)` method before mutating the value — ideally in the initializer of the enclosing type.
+				"""
+			)
 		}
-//		}
 	}
 
-//	public func validate(id: some Hashable & Sendable) {
-//		if mode.isManual {
-//			_validate(id: id)
-//		}
-//	}
-
-//	private func _validate(id: (some Hashable & Sendable)? = AnyHashableSendable?.none) {
-//		let operation: SynchronizedTask.Operation = { @MainActor [weak self, history = state.$rawValue] synchronize in
-//			guard let self else { return }
-//
-//			state.phase = .validating
-//
-//			if let delay = mode.delay {
-//				@Dependency(\.continuousClock) var clock
-//				try await clock.sleep(for: delay)
-//			}
-//
-//			let errors = await rules.evaluate(history)
-//
-//			// TODO: unit test this
-//			// Group validation should be stopped if any one `synchronize()` is cancelled while
-//			// other validations are ongoing.
-//			try await synchronize()
-//
-//			if let errors = NonEmpty(rawValue: errors) {
-//				state.phase = .invalid(errors)
-//			} else {
-//				state.phase = .valid(history.currentValue)
-//			}
-//		}
-//
-//		task?.cancel()
-//		task = if let id {
-//			SynchronizedTask(id: id, operation: operation, onCancel: { /*self.state.phase = .idle*/ })
-//		} else {
-//			Task { try? await operation({ try Task.checkCancellation() }) }
-//		}
-//	}
-
-	private func _validate(in context: Context) {
+	private func validate(in context: Context) {
 		task?.cancel()
 		task = Task {
 			if let delay = mode.delay {
