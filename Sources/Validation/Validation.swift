@@ -69,7 +69,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping Rules.Handler
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) where Context == Void {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), context: (), mode: mode)
 	}
@@ -79,7 +79,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		wrappedValue rawValue: Value? = nil,
 		context: Context? = nil,
 		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping Rules.HandlerWithContext
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), context: context, mode: mode)
 	}
@@ -106,7 +106,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
 		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping Rules.HandlerWithContext
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Value == Wrapped?, Context == Void {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: (), mode: mode)
 	}
@@ -115,7 +115,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		wrappedValue rawValue: Value? = nil,
 		context: Context? = nil,
 		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping Rules.HandlerWithContext
+		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Value == Wrapped? {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: context, mode: mode)
 	}
