@@ -1,5 +1,6 @@
 import Foundation
 
+// TODO: generalize as ValidationTrait protocol
 public enum ValidationMode: Sendable {
 	case automatic(delay: Duration?)
 	case manual

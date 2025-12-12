@@ -3,6 +3,7 @@ public import SwiftUI
 
 //public typealias LocalizedValidation<Value> = Validation<Value, LocalizedStringKey?>
 
+// TODO: flatten double optionals
 @MainActor
 extension Binding {
 	public init<Wrapped>(
@@ -42,6 +43,7 @@ extension Binding {
 	}
 }
 
+// TODO: flatten double optionals
 @MainActor
 extension Binding {
 	subscript<V>(

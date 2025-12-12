@@ -1,6 +1,5 @@
 import Dependencies
 @testable import Validation
-import NonEmpty
 import XCTest
 
 @MainActor
