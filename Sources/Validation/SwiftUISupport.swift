@@ -174,15 +174,20 @@ extension Binding {
 @MainActor
 @Observable
 final class Inputs {
+	init() {
+		$inputA.setContext(self)
+	}
+
 	@ObservationIgnored
-	lazy var _inputA = Validation<String, _, _>(context: self) { input, inputs in
+	@Validation({ (input, inputs: Inputs) in
 		switch input {
 		case nil: "Cannot be nil"
 		case let input?:
 			if input.isEmpty { "Cannot be empty" }
 			if input.isBlank { "Cannot be blank" }
 		}
-	}
+	})
+	var inputA: String?
 
 	@ObservationIgnored
 	@Validation({ input in
@@ -202,12 +207,12 @@ final class Inputs {
 	VStack(alignment: .leading) {
 		TextField(
 			"Name",
-			text: Binding(inputs._inputA, default: "")
+			text: Binding(inputs.$inputA, default: "")
 //			text: $inputs.$inputA.default("")
 		)
 		.textFieldStyle(.roundedBorder)
 
-		if let error = inputs._inputA.errors?.first {
+		if let error = inputs.$inputA.errors?.first {
 			Text(error)
 				.foregroundColor(.red)
 				.font(.footnote)

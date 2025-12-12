@@ -17,7 +17,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	@ObservationIgnored
 	private let mode: ValidationMode
 	@ObservationIgnored
-	private let context: Context
+	private var context: Context?
 
 	private(set) var rawValue: Value?
 	public internal(set) var phase: Phase
@@ -33,7 +33,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
 		defaultValue: Value?,
-		context: Context,
+		context: Context?,
 		mode: ValidationMode = .automatic
 	) {
 		self.rawValue = rawValue
@@ -43,7 +43,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		self.context = context
 		self.mode = mode
 
-		self.validateIfNeeded()
+		self.validateIfPossible()
 	}
 
 	@_disfavoredOverload
@@ -59,7 +59,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
-		context: Context,
+		context: Context? = nil,
 		mode: ValidationMode = .automatic
 	) {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: context, mode: mode)
@@ -77,7 +77,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
-		context: Context,
+		context: Context? = nil,
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping Rules.HandlerWithContext
 	) {
@@ -97,7 +97,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
-		context: Context,
+		context: Context? = nil,
 		mode: ValidationMode = .automatic
 	) where Value == Wrapped? {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: context, mode: mode)
@@ -113,7 +113,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
-		context: Context,
+		context: Context? = nil,
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping Rules.HandlerWithContext
 	) where Value == Wrapped? {
@@ -127,10 +127,22 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		set {
 			let oldValue = rawValue
 			let hasValueChanged = !equals(oldValue as Any, newValue as Any)
+			guard hasValueChanged else { return }
 
-			if hasValueChanged {
-				rawValue = newValue
-				validateIfNeeded()
+			rawValue = newValue
+
+			if let context {
+				_validate(in: context)
+			} else {
+				reportIssue(
+					"""
+					Validation value mutated without context.
+
+					Validation cannot be performed without a context.
+
+					Please set the context using the `$<property>.setContext(_:)` method before mutating the value — ideally in the initializer of the enclosing type.
+					"""
+				)
 			}
 		}
 	}
@@ -139,16 +151,17 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		self
 	}
 
-	private func validateIfNeeded() {
-		if mode.isAutomatic {
-			_validate()
-		}
+	public func setContext(_ context: Context) {
+		self.context = context
+		validateIfPossible()
 	}
 
-	public func validate() {
-		if mode.isManual {
-			_validate()
+	private func validateIfPossible() {
+//		if mode.isAutomatic {
+		if let context {
+			_validate(in: context)
 		}
+//		}
 	}
 
 //	public func validate(id: some Hashable & Sendable) {
@@ -190,7 +203,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 //		}
 //	}
 
-	private func _validate() {
+	private func _validate(in context: Context) {
 		task?.cancel()
 		task = Task {
 			if let delay = mode.delay {
