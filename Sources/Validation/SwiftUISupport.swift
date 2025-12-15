@@ -219,22 +219,6 @@ final class Inputs {
 				.foregroundColor(.red)
 				.font(.footnote)
 		}
-
-		// this shows the thread hop
-		//		Group {
-		//			switch inputs.$inputA.phase {
-		//			case .idle:
-		//				EmptyView()
-		//			case .validating:
-		//				Text("Validating...").foregroundColor(.gray)
-		//			case .invalid(let errors):
-		//				if let error = errors.first {
-		//					Text(error).foregroundColor(.red)
-		//				}
-		//			case .valid:
-		//				Text("All good!").foregroundColor(.green)
-		//			}
-		//		}
 	}
 	//	.animation(.smooth(duration: 0.1), value: inputs.$inputA.phase)
 	.padding()
