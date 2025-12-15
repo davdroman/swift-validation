@@ -172,7 +172,6 @@ extension Binding {
 //	}
 //	.padding()
 //}
-
 @MainActor
 @Observable
 final class Inputs {
