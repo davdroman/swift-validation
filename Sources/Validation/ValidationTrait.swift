@@ -1,30 +1,89 @@
-protocol ValidationTrait {
+import Dependencies
+
+public protocol ValidationTrait: Sendable {
 	func beforeValidation() async
-	func mutatePhase(mutate: () -> Void)
+	func mutatePhase(isInitial: Bool, mutate: @escaping () -> Void)
 	func afterValidation() async
 }
 
-extension ValidationTrait {
+public extension ValidationTrait {
 	func beforeValidation() async {}
-	func mutatePhase(mutate: () -> Void) {}
+	func mutatePhase(isInitial: Bool, mutate: @escaping () -> Void) { mutate() }
 	func afterValidation() async {}
 }
 
+extension [any ValidationTrait] {
+	func beforeValidation() async {
+		for trait in self {
+			await trait.beforeValidation()
+		}
+	}
+
+	func mutatePhase(isInitial: Bool, mutate: @escaping () -> Void) {
+		self.reversed().reduce(mutate) { next, trait in
+			{ trait.mutatePhase(isInitial: isInitial, mutate: next) }
+		}()
+
+//		let operation = withoutActuallyEscaping(mutate) { mutate in
+//			self.reversed().reduce(mutate) { next, trait in
+//				{ trait.mutatePhase(isInitial: isInitial, mutate: next) }
+//			}
+//		}
+//		operation()
+	}
+
+	func afterValidation() async {
+		for trait in self {
+			await trait.afterValidation()
+		}
+	}
+}
+
+public struct DebounceValidationTrait: ValidationTrait {
+	@Dependency(\.continuousClock) private var clock
+
+	private let duration: Duration
+
+	public init(duration: Duration) {
+		self.duration = duration
+	}
+
+	public func beforeValidation() async {
+		do {
+			try await clock.sleep(for: duration)
+		} catch {}
+	}
+}
+
+extension ValidationTrait where Self == DebounceValidationTrait {
+	public static func debounce(for duration: Duration) -> Self {
+		DebounceValidationTrait(duration: duration)
+	}
+}
+
 #if canImport(SwiftUI)
-import SwiftUI
+public import SwiftUI
 
-struct AnimationValidationTrait: ValidationTrait {
-	let animation: Animation
+public struct AnimationValidationTrait: ValidationTrait {
+	private let animation: Animation
 
-	func mutatePhase(mutate: () -> Void) {
-		withAnimation(animation) {
+	public init(animation: Animation) {
+		self.animation = animation
+	}
+
+	public func mutatePhase(isInitial: Bool, mutate: @escaping () -> Void) {
+		if isInitial {
 			mutate()
+		} else {
+			withAnimation(animation) {
+				mutate()
+			}
 		}
 	}
 }
 
 extension ValidationTrait where Self == AnimationValidationTrait {
-	static func animation(_ animation: Animation = .default) -> Self {
+	public static func animation(_ animation: Animation = .default) -> Self {
 		AnimationValidationTrait(animation: animation)
 	}
 }

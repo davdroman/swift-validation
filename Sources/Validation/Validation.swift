@@ -15,7 +15,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	@ObservationIgnored
 	private let defaultValue: Value?
 	@ObservationIgnored
-	private let mode: ValidationMode
+	private let traits: [any ValidationTrait]
 	@ObservationIgnored
 	private weak var _context: AnyObject?
 	private var context: Context? {
@@ -41,27 +41,25 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		of rules: Rules,
 		defaultValue: Value?,
 		context: Context?,
-		mode: ValidationMode = .automatic
+		traits: [any ValidationTrait]
 	) {
 		self.rawValue = rawValue
 		self.phase = .idle
 		self.rules = rules
 		self.defaultValue = defaultValue
 		self._context = context as? AnyObject
-		self.mode = mode
+		self.traits = traits
 
-//		withoutAnimations {
-			self.validateIfPossible(reportIssue: false)
-//		}
+		self.validateIfPossible(isInitial: true, reportIssue: false)
 	}
 
 	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
-		mode: ValidationMode = .automatic
+		traits: (any ValidationTrait)...
 	) where Context == Void {
-		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: nil, mode: mode)
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: nil, traits: traits)
 	}
 
 	@_disfavoredOverload
@@ -69,28 +67,28 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
 		context: Context? = nil,
-		mode: ValidationMode = .automatic
+		traits: (any ValidationTrait)...
 	) where Context: AnyObject {
-		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: context, mode: mode)
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: context, traits: traits)
 	}
 
 	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
-		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
+		traits: (any ValidationTrait)...,
+		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandler<Value, Error>
 	) where Context == Void {
-		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: nil, context: nil, mode: mode)
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: nil, context: nil, traits: traits)
 	}
 
 	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		context: Context? = nil,
-		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
+		traits: (any ValidationTrait)...,
+		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Context: AnyObject {
-		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: nil, context: context, mode: mode)
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: nil, context: context, traits: traits)
 	}
 
 	// MARK: support for double optionals
@@ -98,35 +96,35 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
-		mode: ValidationMode = .automatic
+		traits: (any ValidationTrait)...
 	) where Value == Wrapped?, Context == Void {
-		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: nil, mode: mode)
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: nil, traits: traits)
 	}
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
 		context: Context? = nil,
-		mode: ValidationMode = .automatic
+		traits: (any ValidationTrait)...,
 	) where Value == Wrapped? {
-		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: context, mode: mode)
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: context, traits: traits)
 	}
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
-		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
+		traits: (any ValidationTrait)...,
+		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Value == Wrapped?, Context == Void {
-		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: nil, mode: mode)
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: nil, traits: traits)
 	}
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
 		context: Context? = nil,
-		mode: ValidationMode = .automatic,
-		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
+		traits: (any ValidationTrait)...,
+		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Value == Wrapped? {
-		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: context, mode: mode)
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: context, traits: traits)
 	}
 
 	public var wrappedValue: Value? {
@@ -139,7 +137,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 			guard hasValueChanged else { return }
 
 			rawValue = newValue
-			validateIfPossible()
+			validateIfPossible(isInitial: false)
 		}
 	}
 
@@ -150,13 +148,13 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public func setContext(_ context: Context) where Context: AnyObject {
 		self._context = context
 		withoutAnimations {
-			validateIfPossible()
+			validateIfPossible(isInitial: true)
 		}
 	}
 
-	private func validateIfPossible(reportIssue report: Bool = true) {
+	private func validateIfPossible(isInitial: Bool, reportIssue report: Bool = true) {
 		if let context {
-			validate(in: context)
+			validate(in: context, isInitial: isInitial)
 		} else if report {
 			reportIssue(
 				"""
@@ -170,19 +168,20 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		}
 	}
 
-	private func validate(in context: Context) {
+	private func validate(in context: Context, isInitial: Bool) {
 		task?.cancel()
 		task = Task {
-			if let delay = mode.delay {
-				@Dependency(\.continuousClock) var clock
-				do {
-					try await clock.sleep(for: delay)
-				} catch {
-					return // cancelled
-				}
+			await traits.beforeValidation()
+
+			do {
+				try Task.checkCancellation()
+			} catch {
+				return
 			}
 
-			phase = .validating(phase.errors)
+			traits.mutatePhase(isInitial: isInitial) {
+				self.phase = .validating(self.phase.errors)
+			}
 
 			let errors = await rules.evaluate(rawValue, in: context)
 
@@ -192,13 +191,20 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 				return // cancelled
 			}
 
+			let nextPhase: Phase
 			if !errors.isEmpty {
-				phase = .invalid(errors)
+				nextPhase = .invalid(errors)
 			} else if let rawValue = rawValue ?? defaultValue {
-				phase = .valid(rawValue)
+				nextPhase = .valid(rawValue)
 			} else {
-				phase = .invalid([])
+				nextPhase = .invalid([])
 			}
+
+			traits.mutatePhase(isInitial: isInitial) {
+				self.phase = nextPhase
+			}
+
+			await traits.afterValidation()
 		}
 	}
 

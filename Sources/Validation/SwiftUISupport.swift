@@ -161,6 +161,7 @@ extension Binding {
 //	}
 //	.padding()
 //}
+
 @MainActor
 @Observable
 final class Inputs {
@@ -169,7 +170,7 @@ final class Inputs {
 	}
 
 	@ObservationIgnored
-	@Validation({ (input, inputs: Inputs) in
+	@Validation(traits: .animation(.smooth(duration: 0.1)), rules: { (input, inputs: Inputs) in
 		switch input {
 		case nil: "Cannot be nil"
 		case let input?:
@@ -180,7 +181,7 @@ final class Inputs {
 	var inputA: String?
 
 	@ObservationIgnored
-	@Validation({ input in
+	@Validation(traits: .animation(.smooth(duration: 0.1)), rules: { input in
 		switch input {
 		case nil: "Cannot be nil"
 		case let input?:
@@ -214,8 +215,6 @@ struct PreviewView: View {
 					.font(.footnote)
 			}
 		}
-		.animation(.smooth(duration: 0.1), value: inputs.$inputA.phase)
-		.animation(.smooth(duration: 0.1), value: inputs.$inputB.phase)
 		.padding()
 	}
 }
