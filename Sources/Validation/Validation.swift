@@ -26,8 +26,8 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		}
 	}
 
-	private(set) var rawValue: Value?
-	public internal(set) var phase: Phase
+	internal private(set) var rawValue: Value?
+	public private(set) var phase: Phase
 
 	public subscript<T>(dynamicMember keyPath: KeyPath<Phase, T>) -> T {
 		phase[keyPath: keyPath]
