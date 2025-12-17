@@ -14,39 +14,11 @@ extension Binding {
 			set: { validation.wrappedValue = $0 }
 		)
 	}
-
-	public init(
-		_ validation: Validation<Value, some Any, some Any>,
-		default defaultValue: Value
-	) {
-		self.init(
-			get: { validation.rawValue ?? defaultValue },
-			set: { validation.wrappedValue = $0 }
-		)
-	}
-
-	public init(
-		_ validation: Validation<Value, some Any, some Any>,
-		default defaultValue: Value,
-		nilOnDefault: Bool = false
-	) where Value: Equatable {
-		self.init(
-			get: { validation.rawValue ?? defaultValue },
-			set: {
-				if nilOnDefault && $0 == defaultValue {
-					validation.wrappedValue = nil
-				} else {
-					validation.wrappedValue = $0
-				}
-			}
-		)
-	}
 }
 
-// TODO: flatten double optionals
 @MainActor
 extension Binding {
-	subscript<V>(
+	public subscript<V>(
 		dynamicMember keyPath: KeyPath<Value, Validation<V, some Any, some Any>>
 	) -> Binding<V?> {
 		Binding<V?>(
@@ -56,8 +28,25 @@ extension Binding {
 			}
 		)
 	}
+}
 
-	func `default`<Wrapped>(
+@MainActor
+extension Bindable {
+	public subscript<V>(
+		dynamicMember keyPath: KeyPath<Value, Validation<V, some Any, some Any>>
+	) -> Binding<V?> {
+		Binding<V?>(
+			get: { self.wrappedValue[keyPath: keyPath].rawValue },
+			set: { newValue in
+				self.wrappedValue[keyPath: keyPath].wrappedValue = newValue
+			}
+		)
+	}
+}
+
+@MainActor
+extension Binding {
+	public func `default`<Wrapped>(
 		_ defaultValue: Wrapped
 	) -> Binding<Wrapped> where Value == Wrapped? {
 		Binding<Wrapped>(
@@ -68,7 +57,7 @@ extension Binding {
 		)
 	}
 
-	func `default`<Wrapped: Equatable>(
+	public func `default`<Wrapped: Equatable>(
 		_ defaultValue: Wrapped,
 		nilOnDefault: Bool = false
 	) -> Binding<Wrapped> where Value == Wrapped? {
@@ -202,25 +191,39 @@ final class Inputs {
 	var inputB: String?
 }
 
+struct PreviewView: View {
+	@Bindable var inputs: Inputs
+
+	var body: some View {
+		VStack(alignment: .leading) {
+			TextField("A", text: $inputs.$inputA.default(""))
+				.textFieldStyle(.roundedBorder)
+
+			if let error = inputs.$inputA.errors?.first {
+				Text(error)
+					.foregroundColor(.red)
+					.font(.footnote)
+			}
+
+			TextField("B", text: $inputs.$inputB.default(""))
+				.textFieldStyle(.roundedBorder)
+
+			if let error = inputs.$inputB.errors?.first {
+				Text(error)
+					.foregroundColor(.red)
+					.font(.footnote)
+			}
+		}
+		.animation(.smooth(duration: 0.1), value: inputs.$inputA.phase)
+		.animation(.smooth(duration: 0.1), value: inputs.$inputB.phase)
+		.padding()
+	}
+}
+
 #Preview("@State") {
 	@Previewable @State var inputs = Inputs()
 
-	VStack(alignment: .leading) {
-		TextField(
-			"Name",
-			text: Binding(inputs.$inputA, default: "")
-//			text: $inputs.$inputA.default("")
-		)
-		.textFieldStyle(.roundedBorder)
-
-		if let error = inputs.$inputA.errors?.first {
-			Text(error)
-				.foregroundColor(.red)
-				.font(.footnote)
-		}
-	}
-	//	.animation(.smooth(duration: 0.1), value: inputs.$inputA.phase)
-	.padding()
+	PreviewView(inputs: inputs)
 }
 #endif
 #endif

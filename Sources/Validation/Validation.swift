@@ -17,7 +17,14 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	@ObservationIgnored
 	private let mode: ValidationMode
 	@ObservationIgnored
-	private var context: Context?
+	private weak var _context: AnyObject?
+	private var context: Context? {
+		if Context.self == Void.self {
+			return (() as! Context)
+		} else {
+			return _context as? Context
+		}
+	}
 
 	private(set) var rawValue: Value?
 	public internal(set) var phase: Phase
@@ -40,10 +47,12 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		self.phase = .idle
 		self.rules = rules
 		self.defaultValue = defaultValue
-		self.context = context
+		self._context = context as? AnyObject
 		self.mode = mode
 
-		self.validateIfPossible(reportIssue: false)
+//		withoutAnimations {
+			self.validateIfPossible(reportIssue: false)
+//		}
 	}
 
 	@_disfavoredOverload
@@ -52,7 +61,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		of rules: Rules,
 		mode: ValidationMode = .automatic
 	) where Context == Void {
-		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: (), mode: mode)
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: nil, mode: mode)
 	}
 
 	@_disfavoredOverload
@@ -61,7 +70,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		of rules: Rules,
 		context: Context? = nil,
 		mode: ValidationMode = .automatic
-	) {
+	) where Context: AnyObject {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: context, mode: mode)
 	}
 
@@ -71,7 +80,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandler<Value, Error>
 	) where Context == Void {
-		self.init(wrappedValue: rawValue, of: Rules(handler: handler), context: (), mode: mode)
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: nil, context: nil, mode: mode)
 	}
 
 	@_disfavoredOverload
@@ -80,8 +89,8 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		context: Context? = nil,
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
-	) {
-		self.init(wrappedValue: rawValue, of: Rules(handler: handler), context: context, mode: mode)
+	) where Context: AnyObject {
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: nil, context: context, mode: mode)
 	}
 
 	// MARK: support for double optionals
@@ -91,7 +100,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		of rules: Rules,
 		mode: ValidationMode = .automatic
 	) where Value == Wrapped?, Context == Void {
-		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: (), mode: mode)
+		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: nil, mode: mode)
 	}
 
 	public convenience init<Wrapped>(
@@ -108,7 +117,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		mode: ValidationMode = .automatic,
 		@ArrayBuilder<Error> _ handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Value == Wrapped?, Context == Void {
-		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: (), mode: mode)
+		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: nil, mode: mode)
 	}
 
 	public convenience init<Wrapped>(
@@ -138,9 +147,11 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		self
 	}
 
-	public func setContext(_ context: Context) {
-		self.context = context
-		validateIfPossible()
+	public func setContext(_ context: Context) where Context: AnyObject {
+		self._context = context
+		withoutAnimations {
+			validateIfPossible()
+		}
 	}
 
 	private func validateIfPossible(reportIssue report: Bool = true) {
