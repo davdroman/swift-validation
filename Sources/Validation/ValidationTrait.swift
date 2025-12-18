@@ -2,13 +2,13 @@ import Dependencies
 
 public protocol ValidationTrait: Sendable {
 	func beforeValidation() async
-	func mutatePhase(isInitial: Bool, mutate: @escaping () -> Void)
+	func mutatePhase(isInitial: Bool, mutate: () -> Void)
 	func afterValidation() async
 }
 
 public extension ValidationTrait {
 	func beforeValidation() async {}
-	func mutatePhase(isInitial: Bool, mutate: @escaping () -> Void) { mutate() }
+	func mutatePhase(isInitial: Bool, mutate: () -> Void) { mutate() }
 	func afterValidation() async {}
 }
 
@@ -19,17 +19,13 @@ extension [any ValidationTrait] {
 		}
 	}
 
-	func mutatePhase(isInitial: Bool, mutate: @escaping () -> Void) {
-		self.reversed().reduce(mutate) { next, trait in
-			{ trait.mutatePhase(isInitial: isInitial, mutate: next) }
-		}()
-
-//		let operation = withoutActuallyEscaping(mutate) { mutate in
-//			self.reversed().reduce(mutate) { next, trait in
-//				{ trait.mutatePhase(isInitial: isInitial, mutate: next) }
-//			}
-//		}
-//		operation()
+	func mutatePhase(isInitial: Bool, mutate: () -> Void) {
+		withoutActuallyEscaping(mutate) { mutate in
+			let operation = reversed().reduce(mutate) { next, trait in
+				{ trait.mutatePhase(isInitial: isInitial, mutate: next) }
+			}
+			operation()
+		}
 	}
 
 	func afterValidation() async {
@@ -71,7 +67,7 @@ public struct AnimationValidationTrait: ValidationTrait {
 		self.animation = animation
 	}
 
-	public func mutatePhase(isInitial: Bool, mutate: @escaping () -> Void) {
+	public func mutatePhase(isInitial: Bool, mutate: () -> Void) {
 		if isInitial {
 			mutate()
 		} else {

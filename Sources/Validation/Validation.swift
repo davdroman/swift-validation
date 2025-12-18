@@ -180,7 +180,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 			}
 
 			traits.mutatePhase(isInitial: isInitial) {
-				self.phase = .validating(self.phase.errors)
+				phase = .validating(phase.errors)
 			}
 
 			let errors = await rules.evaluate(rawValue, in: context)
@@ -201,7 +201,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 			}
 
 			traits.mutatePhase(isInitial: isInitial) {
-				self.phase = nextPhase
+				phase = nextPhase
 			}
 
 			await traits.afterValidation()
