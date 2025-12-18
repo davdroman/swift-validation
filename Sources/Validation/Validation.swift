@@ -147,9 +147,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 
 	public func setContext(_ context: Context) where Context: AnyObject {
 		self._context = context
-		withoutAnimations {
-			validateIfPossible(isInitial: true)
-		}
+		validateIfPossible(isInitial: true)
 	}
 
 	private func validateIfPossible(isInitial: Bool, reportIssue report: Bool = true) {
