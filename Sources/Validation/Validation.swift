@@ -57,7 +57,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
-		traits: (any ValidationTrait)...
+		traits: any ValidationTrait...
 	) where Context == Void {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: nil, traits: traits)
 	}
@@ -67,7 +67,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
 		context: Context? = nil,
-		traits: (any ValidationTrait)...
+		traits: any ValidationTrait...
 	) where Context: AnyObject {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: nil, context: context, traits: traits)
 	}
@@ -75,7 +75,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	@_disfavoredOverload
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
-		traits: (any ValidationTrait)...,
+		traits: any ValidationTrait...,
 		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandler<Value, Error>
 	) where Context == Void {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: nil, context: nil, traits: traits)
@@ -85,7 +85,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init(
 		wrappedValue rawValue: Value? = nil,
 		context: Context? = nil,
-		traits: (any ValidationTrait)...,
+		traits: any ValidationTrait...,
 		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Context: AnyObject {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: nil, context: context, traits: traits)
@@ -96,7 +96,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
-		traits: (any ValidationTrait)...
+		traits: any ValidationTrait...
 	) where Value == Wrapped?, Context == Void {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: nil, traits: traits)
 	}
@@ -105,14 +105,14 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		wrappedValue rawValue: Value? = nil,
 		of rules: Rules,
 		context: Context? = nil,
-		traits: (any ValidationTrait)...,
+		traits: any ValidationTrait...,
 	) where Value == Wrapped? {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: context, traits: traits)
 	}
 
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
-		traits: (any ValidationTrait)...,
+		traits: any ValidationTrait...,
 		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Value == Wrapped?, Context == Void {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: nil, traits: traits)
@@ -121,7 +121,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	public convenience init<Wrapped>(
 		wrappedValue rawValue: Value? = nil,
 		context: Context? = nil,
-		traits: (any ValidationTrait)...,
+		traits: any ValidationTrait...,
 		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
 	) where Value == Wrapped? {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: context, traits: traits)
