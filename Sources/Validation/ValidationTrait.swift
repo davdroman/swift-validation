@@ -1,21 +1,22 @@
 import Dependencies
 
 public protocol ValidationTrait: Sendable {
-	func beforeValidation() async
+	func beforeValidation() async throws(CancellationError)
 	func mutatePhase(isInitial: Bool, mutate: () -> Void)
-	func afterValidation() async
+	func afterValidation() async throws(CancellationError)
 }
 
 public extension ValidationTrait {
-	func beforeValidation() async {}
-	func mutatePhase(isInitial: Bool, mutate: () -> Void) { mutate() }
-	func afterValidation() async {}
+	@_transparent func beforeValidation() async throws(CancellationError) {}
+	@_transparent func mutatePhase(isInitial: Bool, mutate: () -> Void) { mutate() }
+	@_transparent func afterValidation() async throws(CancellationError) {}
 }
 
 extension [any ValidationTrait] {
-	func beforeValidation() async {
+	@inlinable
+	func beforeValidation() async throws(CancellationError) {
 		for trait in self {
-			await trait.beforeValidation()
+			try await trait.beforeValidation()
 		}
 	}
 
@@ -28,9 +29,10 @@ extension [any ValidationTrait] {
 		}
 	}
 
-	func afterValidation() async {
+	@inlinable
+	func afterValidation() async throws(CancellationError) {
 		for trait in self {
-			await trait.afterValidation()
+			try await trait.afterValidation()
 		}
 	}
 }
@@ -44,10 +46,12 @@ public struct DebounceValidationTrait: ValidationTrait {
 		self.duration = duration
 	}
 
-	public func beforeValidation() async {
+	public func beforeValidation() async throws(CancellationError) {
 		do {
 			try await clock.sleep(for: duration)
-		} catch {}
+		} catch {
+			throw CancellationError()
+		}
 	}
 }
 

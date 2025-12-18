@@ -171,12 +171,10 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	private func validate(in context: Context, isInitial: Bool) {
 		task?.cancel()
 		task = Task {
-			await traits.beforeValidation()
-
 			do {
-				try Task.checkCancellation()
+				try await traits.beforeValidation()
 			} catch {
-				return
+				return // cancelled
 			}
 
 			traits.mutatePhase(isInitial: isInitial) {
@@ -191,20 +189,21 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 				return // cancelled
 			}
 
-			let nextPhase: Phase
-			if !errors.isEmpty {
-				nextPhase = .invalid(errors)
-			} else if let rawValue = rawValue ?? defaultValue {
-				nextPhase = .valid(rawValue)
-			} else {
-				nextPhase = .invalid([])
-			}
-
 			traits.mutatePhase(isInitial: isInitial) {
-				phase = nextPhase
+				if !errors.isEmpty {
+					phase = .invalid(errors)
+				} else if let rawValue = rawValue ?? defaultValue {
+					phase = .valid(rawValue)
+				} else {
+					phase = .invalid([])
+				}
 			}
 
-			await traits.afterValidation()
+			do {
+				try await traits.afterValidation()
+			} catch {
+				return // cancelled
+			}
 		}
 	}
 
