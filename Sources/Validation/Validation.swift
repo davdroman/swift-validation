@@ -106,7 +106,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		of rules: Rules,
 		context: Context? = nil,
 		traits: any ValidationTrait...,
-	) where Value == Wrapped? {
+	) where Value == Wrapped?, Context: AnyObject {
 		self.init(wrappedValue: rawValue, of: rules, defaultValue: .some(nil), context: context, traits: traits)
 	}
 
@@ -123,7 +123,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 		context: Context? = nil,
 		traits: any ValidationTrait...,
 		@ArrayBuilder<Error> rules handler: @escaping ValidationRulesHandlerWithContext<Value, Error, Context>
-	) where Value == Wrapped? {
+	) where Value == Wrapped?, Context: AnyObject {
 		self.init(wrappedValue: rawValue, of: Rules(handler: handler), defaultValue: .some(nil), context: context, traits: traits)
 	}
 
