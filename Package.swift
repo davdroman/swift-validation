@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.1
 
 import PackageDescription
 
@@ -13,12 +13,15 @@ let package = Package(
 	products: [
 		.library(name: "Validation", targets: ["Validation"]),
 	],
+	traits: [
+		"Dependencies",
+	],
 	targets: [
 		.target(
 			name: "Validation",
 			dependencies: [
 				.product(name: "Builders", package: "swift-builders"),
-				.product(name: "Dependencies", package: "swift-dependencies"),
+				.product(name: "Dependencies", package: "swift-dependencies", condition: .when(traits: ["Dependencies"])),
 			]
 		),
 		.testTarget(name: "ValidationTests", dependencies: [
