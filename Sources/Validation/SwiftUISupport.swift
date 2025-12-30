@@ -175,7 +175,7 @@ final class Inputs {
 		case nil: "Cannot be nil"
 		case let input?:
 			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
+			if input.allSatisfy(\.isWhitespace) { "Cannot be blank" }
 		}
 	})
 	var inputA: String?
@@ -186,7 +186,7 @@ final class Inputs {
 		case nil: "Cannot be nil"
 		case let input?:
 			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
+			if input.allSatisfy(\.isWhitespace) { "Cannot be blank" }
 		}
 	})
 	var inputB: String?
