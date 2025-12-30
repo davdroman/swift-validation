@@ -11,23 +11,19 @@ extension ValidationPhase: Sendable where Value: Sendable, Error: Sendable {}
 
 extension ValidationPhase {
 	public var isIdle: Bool {
-		if case .idle = self { return true }
-		return false
+		if case .idle = self { true } else { false }
 	}
 
 	public var isValidating: Bool {
-		if case .validating = self { return true }
-		return false
+		if case .validating = self { true } else { false }
 	}
 
 	public var isInvalid: Bool {
-		if case .invalid = self { return true }
-		return false
+		if case .invalid = self { true } else { false }
 	}
 
 	public var isValid: Bool {
-		if case .valid = self { return true }
-		return false
+		if case .valid = self { true } else { false }
 	}
 }
 
@@ -35,16 +31,18 @@ extension ValidationPhase {
 	public var errors: [Error]? {
 		switch self {
 		case let .validating(errors?), let .invalid(errors):
-			return errors
+			errors
 		default:
-			return nil
+			nil
 		}
 	}
 
 	public var value: Value? {
-		if case let .valid(value) = self {
-			return value
+		switch self {
+		case let .valid(value):
+			value
+		default:
+			nil
 		}
-		return nil
 	}
 }
