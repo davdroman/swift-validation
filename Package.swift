@@ -31,7 +31,7 @@ let package = Package(
 )
 
 package.dependencies += [
-	.package(url: "https://github.com/davdroman/swift-builders", from: "0.1.0"),
+	.package(url: "https://github.com/davdroman/swift-builders", from: "0.10.0"),
 	.package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
 ]
 
