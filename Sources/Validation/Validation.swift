@@ -148,21 +148,17 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 			case .unset:
 				reportIssue(
 					"""
-					Validation value mutated without context.
+					Context-dependent validation cannot be performed without a context.
 
-					Validation cannot be performed without a context.
-
-					Please set the context using the `$<property>.setContext(_:)` method before mutating the value — ideally in the initializer of the enclosing type.
+					Make sure to mark the enclosing class as `@ValidationContext`.
 					"""
 				)
 			case .typeMismatch(let expected, let actual):
 				reportIssue(
 					"""
-					Validation context type mismatch.
-
 					Expected context of type \(expected), but got \(actual).
 
-					Please ensure that the correct context type is provided using the `$<property>.setContext(_:)` method.
+					Make sure to mark the enclosing context type matches your rules' context type.
 					"""
 				)
 			}
