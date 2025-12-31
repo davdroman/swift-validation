@@ -164,9 +164,10 @@ extension Binding {
 
 @MainActor
 @Observable
-final class Inputs {
+final class Inputs: ValidationContext {
 	init() {
 		$inputA.setContext(self)
+		$inputB.setContext(self)
 	}
 
 	@ObservationIgnored
