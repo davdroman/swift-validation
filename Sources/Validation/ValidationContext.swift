@@ -1,6 +1,3 @@
-// TODO: use module selector when available https://github.com/swiftlang/swift-evolution/blob/main/proposals/0491-module-selectors.md
-public typealias _Validation = Validation
-
 public protocol ValidationContext: AnyObject {
 	typealias Focus = _Focus<Self>
 }
