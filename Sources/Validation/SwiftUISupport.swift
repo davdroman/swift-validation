@@ -164,7 +164,9 @@ extension Binding {
 
 @MainActor
 @Observable
-final class Inputs: ValidationContext {
+@ValidationContext
+final class Inputs {
+	// synthesized
 	init() {
 		$inputA.setContext(self)
 		$inputB.setContext(self)
@@ -192,6 +194,9 @@ final class Inputs: ValidationContext {
 	})
 	var inputB: String?
 }
+
+// synthesized
+extension Inputs: ValidationContext {}
 
 struct PreviewView: View {
 	@Bindable var inputs: Inputs
