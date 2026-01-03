@@ -5,14 +5,12 @@ struct ValidationContextTypeInfo {
 	let name: TokenSyntax
 	let members: MemberBlockItemListSyntax
 	let inheritanceClause: InheritanceClauseSyntax?
-	let syntax: Syntax
 
 	init?(declaration: some DeclGroupSyntax) {
 		if let classDecl = declaration.as(ClassDeclSyntax.self) {
 			name = classDecl.name
 			members = classDecl.memberBlock.members
 			inheritanceClause = classDecl.inheritanceClause
-			syntax = Syntax(classDecl)
 			return
 		}
 
@@ -20,7 +18,6 @@ struct ValidationContextTypeInfo {
 			name = actorDecl.name
 			members = actorDecl.memberBlock.members
 			inheritanceClause = actorDecl.inheritanceClause
-			syntax = Syntax(actorDecl)
 			return
 		}
 
@@ -36,18 +33,6 @@ enum ValidationContextMacroDiagnostics {
 
 		var diagnosticID: MessageID {
 			.init(domain: "ValidationContextMacro", id: "UnsupportedType")
-		}
-
-		var severity: DiagnosticSeverity { .error }
-	}
-
-	struct MissingInitializer: DiagnosticMessage {
-		var message: String {
-			"`@ValidationContext` requires an explicit initializer."
-		}
-
-		var diagnosticID: MessageID {
-			.init(domain: "ValidationContextMacro", id: "MissingInitializer")
 		}
 
 		var severity: DiagnosticSeverity { .error }
@@ -71,8 +56,33 @@ func validationProperties(in members: MemberBlockItemListSyntax) -> [String] {
 	return names
 }
 
-func hasInitializer(in members: MemberBlockItemListSyntax) -> Bool {
-	members.contains { $0.decl.is(InitializerDeclSyntax.self) }
+func validationContextTraitsExpressions(from attribute: AttributeSyntax) -> [ExprSyntax] {
+	guard let arguments = attribute.arguments else { return [] }
+	guard case let .argumentList(argumentList) = arguments else { return [] }
+
+	var expressions: [ExprSyntax] = []
+	var collecting = false
+
+	for argument in argumentList {
+		if argument.label?.text == "traits" {
+			collecting = true
+			expressions.append(argument.expression)
+			continue
+		}
+
+		if collecting, argument.label == nil {
+			expressions.append(argument.expression)
+		}
+	}
+
+	if expressions.isEmpty {
+		let unlabeled = argumentList.filter { $0.label == nil }
+		if !unlabeled.isEmpty {
+			expressions = unlabeled.map { $0.expression }
+		}
+	}
+
+	return expressions
 }
 
 func hasValidationContextConformance(in inheritanceClause: InheritanceClauseSyntax?) -> Bool {

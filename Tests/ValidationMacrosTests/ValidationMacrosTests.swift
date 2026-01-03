@@ -15,7 +15,8 @@ struct ValidationMacrosTests {
 	@Test func appendsToExistingInit() {
 		assertMacro {
 			"""
-			@ValidationContext
+			@MainActor
+			@ValidationContext(traits: .debounce(for: .seconds(1)), .debounce(for: .seconds(2)))
 			final class Inputs {
 				@Validation
 				var inputA: String?
@@ -41,6 +42,7 @@ struct ValidationMacrosTests {
 			"""
 		} expansion: {
 			"""
+			@MainActor
 			final class Inputs {
 				@Validation
 				var inputA: String?
@@ -67,6 +69,9 @@ struct ValidationMacrosTests {
 			}
 
 			extension Inputs: ValidationContext {
+				nonisolated var validationTraits: [any ValidationTrait] {
+					[.debounce(for: .seconds(1)), .debounce(for: .seconds(2))]
+				}
 			}
 			"""
 		}

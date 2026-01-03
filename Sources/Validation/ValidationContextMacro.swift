@@ -1,6 +1,6 @@
 @attached(memberAttribute)
-@attached(extension, conformances: ValidationContext)
-public macro ValidationContext() = #externalMacro(
+@attached(extension, conformances: ValidationContext, names: named(validationTraits))
+public macro ValidationContext(traits: any ValidationTrait...) = #externalMacro(
 	module: "ValidationMacros",
 	type: "ValidationContextMacro"
 )

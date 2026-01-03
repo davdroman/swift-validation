@@ -164,12 +164,12 @@ extension Binding {
 
 @MainActor
 @Observable
-@ValidationContext
+@ValidationContext(traits: .animation(.smooth(duration: 0.1)))
 final class Inputs {
 	init() {}
 
 	@ObservationIgnored
-	@Validation(traits: .animation(.smooth(duration: 0.1)), rules: { (input, inputs: Inputs) in
+	@Validation(rules: { (input, inputs: Inputs) in
 		switch input {
 		case nil: "Cannot be nil"
 		case let input?:
@@ -180,7 +180,7 @@ final class Inputs {
 	var inputA: String?
 	
 	@ObservationIgnored
-	@Validation(traits: .animation(.smooth(duration: 0.1)), rules: { input in
+	@Validation(rules: { input in
 		switch input {
 		case nil: "Cannot be nil"
 		case let input?:

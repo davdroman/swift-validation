@@ -15,6 +15,10 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 	private let traits: [any ValidationTrait]
 	@ObservationIgnored
 	private weak var context: (any ValidationContext)?
+	@ObservationIgnored
+	private var combinedTraits: [any ValidationTrait] {
+		(context?.validationTraits ?? []) + traits
+	}
 
 	internal private(set) var rawValue: Value?
 	public private(set) var phase: ValidationPhase<Value, Error>
@@ -167,6 +171,7 @@ public final class Validation<Value: Sendable, Error: Sendable, Context: Sendabl
 
 	private func validate(in context: Context, isInitial: Bool) {
 		task?.cancel()
+		let traits = combinedTraits
 		task = Task {
 			do {
 				try await traits.beforeValidation()

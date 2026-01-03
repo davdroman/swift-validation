@@ -40,33 +40,27 @@ struct ValidationContextMacro: MemberAttributeMacro, ExtensionMacro {
 			return []
 		}
 
-		let properties = validationProperties(in: typeInfo.members)
-		if !properties.isEmpty, !hasInitializer(in: typeInfo.members) {
-			if let fixIt = missingInitializerFixIt(for: declaration) {
-				context.diagnose(
-					Diagnostic(
-						node: Syntax(node),
-						message: ValidationContextMacroDiagnostics.MissingInitializer(),
-						fixIt: fixIt
-					)
-				)
-			} else {
-				context.diagnose(
-					Diagnostic(
-						node: Syntax(node),
-						message: ValidationContextMacroDiagnostics.MissingInitializer()
-					)
-				)
-			}
-		}
-
 		guard !hasValidationContextConformance(in: typeInfo.inheritanceClause) else { return [] }
 
 		let typeName = qualifiedTypeName(for: declaration, named: typeInfo.name.text)
-		let extensionDecl: DeclSyntax =
-			"""
-			extension \(raw: typeName): ValidationContext {}
-			"""
+		let extensionDecl: DeclSyntax
+		let traitsExpressions = validationContextTraitsExpressions(from: node)
+		if traitsExpressions.isEmpty {
+			extensionDecl =
+				"""
+				extension \(raw: typeName): ValidationContext {}
+				"""
+		} else {
+			let traitsSource = traitsExpressions.map { $0.trimmedDescription }.joined(separator: ", ")
+			extensionDecl =
+				"""
+				extension \(raw: typeName): ValidationContext {
+					nonisolated var validationTraits: [any ValidationTrait] {
+						[\(raw: traitsSource)]
+					}
+				}
+				"""
+		}
 
 		return [extensionDecl.cast(ExtensionDeclSyntax.self)]
 	}
@@ -83,48 +77,4 @@ private func validationContextInitAttribute(with properties: [String]) -> Attrib
 	return AttributeSyntax(
 		stringLiteral: "@ValidationContextInit(properties: [\(arguments)])"
 	)
-}
-
-private func missingInitializerFixIt(for declaration: some DeclGroupSyntax) -> FixIt? {
-	if let classDecl = declaration.as(ClassDeclSyntax.self) {
-		let initializerItem = MemberBlockItemSyntax(
-			leadingTrivia: Trivia(pieces: [.newlines(1), .tabs(1)]),
-			decl: emptyInitializerDecl()
-		)
-		var members = [initializerItem]
-		members.append(contentsOf: classDecl.memberBlock.members)
-		let updatedMembers = MemberBlockItemListSyntax(members)
-		let updatedMemberBlock = classDecl.memberBlock.with(\.members, updatedMembers)
-		let updatedDecl = classDecl.with(\.memberBlock, updatedMemberBlock)
-		return FixIt(
-			message: MacroExpansionFixItMessage("Insert 'init() {}'"),
-			changes: [
-				.replace(oldNode: Syntax(classDecl), newNode: Syntax(updatedDecl)),
-			]
-		)
-	}
-
-	if let actorDecl = declaration.as(ActorDeclSyntax.self) {
-		let initializerItem = MemberBlockItemSyntax(
-			leadingTrivia: Trivia(pieces: [.newlines(1), .tabs(1)]),
-			decl: emptyInitializerDecl()
-		)
-		var members = [initializerItem]
-		members.append(contentsOf: actorDecl.memberBlock.members)
-		let updatedMembers = MemberBlockItemListSyntax(members)
-		let updatedMemberBlock = actorDecl.memberBlock.with(\.members, updatedMembers)
-		let updatedDecl = actorDecl.with(\.memberBlock, updatedMemberBlock)
-		return FixIt(
-			message: MacroExpansionFixItMessage("Insert 'init() {}'"),
-			changes: [
-				.replace(oldNode: Syntax(actorDecl), newNode: Syntax(updatedDecl)),
-			]
-		)
-	}
-
-	return nil
-}
-
-private func emptyInitializerDecl() -> DeclSyntax {
-	DeclSyntax(stringLiteral: "init() {}")
 }
