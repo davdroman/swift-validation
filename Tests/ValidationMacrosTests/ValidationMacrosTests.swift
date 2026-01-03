@@ -20,8 +20,19 @@ struct ValidationMacrosTests {
 				@Validation
 				var inputA: String?
 
+				@OtherWrapper
+				var otherWrapper: String?
+
+				var plainValue: Int = 0
+
+				@ValidationWrapper
+				var wrappedValue: String?
+
 				@Validation
 				var inputB: String?
+
+				@Validation
+				static var staticInput: String?
 
 				init() {
 					print("ready")
@@ -34,8 +45,19 @@ struct ValidationMacrosTests {
 				@Validation
 				var inputA: String?
 
+				@OtherWrapper
+				var otherWrapper: String?
+
+				var plainValue: Int = 0
+
+				@ValidationWrapper
+				var wrappedValue: String?
+
 				@Validation
 				var inputB: String?
+
+				@Validation
+				static var staticInput: String?
 
 				init() {
 					print("ready")
