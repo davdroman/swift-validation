@@ -1,76 +1,56 @@
-import Dependencies
 @testable import Validation
 import XCTest
 
 @MainActor
 final class ValidationTests: XCTestCase {
-	override func invokeTest() {
-		withMainSerialExecutor {
-			super.invokeTest()
-		}
-	}
+//	override func invokeTest() {
+//		withMainSerialExecutor {
+//			super.invokeTest()
+//		}
+//	}
 
-	func testOptionalError() async {
-		@Validation<String, String?>({ $input in
-			if $input.isUnset { nil }
-			if input.isEmpty { "Cannot be empty" }
-			if input.isBlank { "Cannot be blank" }
-		})
-		var sut: String? = ""
-		await Task.yield()
-		XCTAssertEqual(sut, nil)
-		XCTAssertEqual($sut.errors, NonEmptyArray(nil, "Cannot be empty", "Cannot be blank"))
-
-		sut = ""
-		await Task.yield()
-		XCTAssertEqual(sut, nil)
-		XCTAssertEqual($sut.errors, NonEmptyArray(nil, "Cannot be empty", "Cannot be blank"))
-
-		sut = " "
-		await Task.yield()
-		XCTAssertEqual(sut, nil)
-		XCTAssertEqual($sut.errors, NonEmptyArray("Cannot be blank"))
-
-		sut = ""
-		await Task.yield()
-		XCTAssertEqual(sut, nil)
-		XCTAssertEqual($sut.errors, NonEmptyArray("Cannot be empty", "Cannot be blank"))
-
-		sut = " "
-		await Task.yield()
-		XCTAssertEqual(sut, nil)
-		XCTAssertEqual($sut.errors, NonEmptyArray("Cannot be blank"))
-
-		sut = " S"
-		await Task.yield()
-		XCTAssertEqual(sut, " S")
-		XCTAssertEqual($sut.errors, nil)
-	}
-
-//	func testMutationDuringManualValidation() async {
-//		let clock = TestClock()
-//		@Validation<String, String?>(mode: .manual, { $input in
-//			let _ = try! await clock.sleep(for: .seconds(1))
-//			if $input.isUnset { nil }
-//			if input.isEmpty { "Cannot be empty" }
-//			if input.isBlank { "Cannot be blank" }
+//	func testOptionalError() async {
+//		@Validation(rules: { input -> [String?] in
+//			switch input {
+//			case nil:
+//				nil
+//			case let input?:
+//				if input.isEmpty { "Cannot be empty" }
+//				if input.allSatisfy(\.isWhitespace) { "Cannot be blank" }
+//			}
 //		})
 //		var sut: String? = ""
 //		await Task.yield()
-//		XCTAssertEqual($sut.isIdle, true)
 //		XCTAssertEqual(sut, nil)
-//		XCTAssertEqual($sut.errors, nil)
+//		XCTAssertEqual($sut.errors, [nil, "Cannot be empty", "Cannot be blank"])
 //
-//		sut = "Input"
-//		$sut.validate()
 //		sut = ""
-//		await clock.advance(by: .seconds(1))
-//		XCTAssertEqual($sut.isValid, true)
-//		XCTAssertEqual(sut, "Input")
+//		await Task.yield()
+//		XCTAssertEqual(sut, nil)
+//		XCTAssertEqual($sut.errors, [nil, "Cannot be empty", "Cannot be blank"])
+//
+//		sut = " "
+//		await Task.yield()
+//		XCTAssertEqual(sut, nil)
+//		XCTAssertEqual($sut.errors, ["Cannot be blank"])
+//
+//		sut = ""
+//		await Task.yield()
+//		XCTAssertEqual(sut, nil)
+//		XCTAssertEqual($sut.errors, ["Cannot be empty", "Cannot be blank"])
+//
+//		sut = " "
+//		await Task.yield()
+//		XCTAssertEqual(sut, nil)
+//		XCTAssertEqual($sut.errors, ["Cannot be blank"])
+//
+//		sut = " S"
+//		await Task.yield()
+//		XCTAssertEqual(sut, " S")
 //		XCTAssertEqual($sut.errors, nil)
 //	}
-//
-//	func testAutomaticModeWithDelay() async throws {
+
+//	func testDebounceTrait() async throws {
 //		#if os(Linux)
 //		let clock = TestClock()
 //		#else

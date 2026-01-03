@@ -166,11 +166,7 @@ extension Binding {
 @Observable
 @ValidationContext
 final class Inputs {
-	// synthesized
-	init() {
-		$inputA.setContext(self)
-		$inputB.setContext(self)
-	}
+	init() {}
 
 	@ObservationIgnored
 	@Validation(traits: .animation(.smooth(duration: 0.1)), rules: { (input, inputs: Inputs) in
@@ -182,7 +178,7 @@ final class Inputs {
 		}
 	})
 	var inputA: String?
-
+	
 	@ObservationIgnored
 	@Validation(traits: .animation(.smooth(duration: 0.1)), rules: { input in
 		switch input {
@@ -194,9 +190,6 @@ final class Inputs {
 	})
 	var inputB: String?
 }
-
-// synthesized
-extension Inputs: ValidationContext {}
 
 struct PreviewView: View {
 	@Bindable var inputs: Inputs

@@ -1,5 +1,5 @@
 public import Builders
-import Dependencies
+import IssueReporting
 public import Observation
 
 @MainActor

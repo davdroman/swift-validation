@@ -1,5 +1,3 @@
-import Dependencies
-
 public protocol ValidationTrait: Sendable {
 	func beforeValidation() async throws(CancellationError)
 	func mutatePhase(isInitial: Bool, mutate: () -> Void)
