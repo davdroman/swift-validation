@@ -1,11 +1,11 @@
 public protocol ValidationContext: AnyObject {
 	typealias Focus = _Focus<Self>
 
-	var validationTraits: [any ValidationTrait] { get }
+	var defaultValidationTraits: [any ValidationTrait] { get }
 }
 
 public extension ValidationContext {
-	var validationTraits: [any ValidationTrait] { [] }
+	var defaultValidationTraits: [any ValidationTrait] { [] }
 }
 
 // ExpressibleByKeyPathLiteral would be really sweet here

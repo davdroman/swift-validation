@@ -164,9 +164,13 @@ extension Binding {
 
 @MainActor
 @Observable
-@ValidationContext(traits: .animation(.smooth(duration: 0.1)))
+@ValidationContext
 final class Inputs {
 	init() {}
+
+	let defaultValidationTraits: [any ValidationTrait] = [
+		.animation(.smooth(duration: 0.1))
+	]
 
 	@ObservationIgnored
 	@Validation(rules: { (input, inputs: Inputs) in
